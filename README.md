@@ -1,80 +1,117 @@
+<div align="center">
+
 # BundleMind Frontend
 
-BundleMind is a React dashboard for retail bundle intelligence. It gives teams a clean workspace to upload sales data, identify fast and slow moving products, run forecasts, generate basket rules, manage bundle recommendations, and export reports.
+### Retail analytics dashboard for smarter bundles, forecasts, and product decisions.
 
-## Features
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=111827)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=for-the-badge&logo=vite&logoColor=ffffff)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=ffffff)
+![Axios](https://img.shields.io/badge/Axios-API-5A29E4?style=for-the-badge&logo=axios&logoColor=ffffff)
 
-- Protected authentication flow with login and registration
-- Dashboard overview for sales, profit, and model-driven performance signals
-- Dataset upload and validation workflow
-- Fast/slow product movement analysis
-- Forecasting interface for product demand signals
-- Basket rule generation and application
-- Bundle recommendation review and approval
-- Reporting summary with CSV export support
+</div>
+
+BundleMind is a modern React dashboard for retail bundle intelligence. It gives teams a clean workspace to upload sales data, identify fast and slow moving products, run forecasts, generate basket rules, review bundle recommendations, and export business reports.
+
+---
+
+## Preview
+
+```text
+Upload data -> Analyze movement -> Forecast demand -> Generate basket rules -> Approve bundles -> Export reports
+```
+
+## Highlights
+
+| Area | What it does |
+| --- | --- |
+| Authentication | Login, registration, protected routes, and token based sessions |
+| Dashboard | Sales, profit, and performance signals in one overview |
+| Uploads | Dataset validation and save workflow |
+| Fast/Slow Analysis | Identify product movement patterns |
+| Forecasting | Run demand forecasting workflows |
+| Basket Rules | Generate and apply basket based rules |
+| Bundles | Review and approve recommended product bundles |
+| Reports | View summaries and export CSV reports |
 
 ## Tech Stack
 
-- React 18
-- Vite
-- React Router
-- Axios
-- Tailwind CSS
-- Recharts
-- React Hot Toast
+| Layer | Tools |
+| --- | --- |
+| Frontend | React 18, Vite |
+| Styling | Tailwind CSS |
+| Routing | React Router |
+| HTTP | Axios |
+| Charts | Recharts |
+| Notifications | React Hot Toast |
 
-## Project Structure
+## Folder Structure
 
 ```text
-src/
-  components/
-    layout/      App shell, sidebar, top bar, and protected route
-    shared/      Reusable UI components
-  config/        API base configuration
-  context/       Authentication context
-  pages/         Application screens
-  services/      API service helpers
+bundlemind-frontend/
+  src/
+    components/
+      layout/      App shell, sidebar, top bar, protected routes
+      shared/      Reusable UI components
+    config/        API base configuration
+    context/       Authentication state and session helpers
+    pages/         Route-level application screens
+    services/      API request helpers
 ```
 
 ## Getting Started
 
-Install dependencies:
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-Start the development server:
+### 2. Start the development server
 
 ```bash
 npm run dev
 ```
 
-Build for production:
+The app will run on the local Vite development URL shown in your terminal.
+
+### 3. Build for production
 
 ```bash
 npm run build
 ```
 
-Preview the production build:
+### 4. Preview the production build
 
 ```bash
 npm run preview
 ```
 
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Create a production build in `dist/` |
+| `npm run preview` | Preview the production build locally |
+
 ## API Configuration
 
-The frontend currently points to the local backend API:
+The frontend currently points to a local backend API:
 
 ```js
 const BASE_URL = "http://localhost:8000/api";
 ```
 
-You can update this in `src/config/api.js` when connecting to a deployed backend.
+You can update the backend URL in:
+
+```text
+src/config/api.js
+```
 
 ## App Routes
 
-| Route | Description |
+| Route | Screen |
 | --- | --- |
 | `/auth` | Login and registration |
 | `/dashboard` | Main analytics dashboard |
@@ -85,13 +122,31 @@ You can update this in `src/config/api.js` when connecting to a deployed backend
 | `/bundles` | Bundle recommendations and approvals |
 | `/reports` | Reporting and exports |
 
-## Git Notes
+## Git Hygiene
 
-The repository ignores generated and local-only files such as:
+This project keeps generated and local-only files out of version control:
 
-- `node_modules/`
-- `dist/`
-- `.env` files
-- debug logs
+```text
+node_modules/
+dist/
+.env
+.env.*
+debug logs
+```
 
-This keeps commits focused on source code and configuration.
+## Commit Suggestion
+
+If you are splitting the first push into multiple commits, this README fits nicely with the initial project setup commit:
+
+```bash
+git add README.md .gitignore package.json package-lock.json index.html vite.config.js postcss.config.js tailwind.config.js src/index.css src/main.jsx
+git commit -m "Initialize Vite React frontend"
+```
+
+---
+
+<div align="center">
+
+Built for clear retail decisions, from raw sales data to approved bundle recommendations.
+
+</div>
