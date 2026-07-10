@@ -1,0 +1,11 @@
+{
+  "project": "BundleMind",
+  "model": "FP-Growth promotional bundle recommendation",
+  "raw_transactions_used": 200000,
+  "unique_products": 2190,
+  "min_support": 0.01,
+  "min_confidence": 0.4,
+  "frequent_itemsets_count": 1000,
+  "association_rules_count": 2001,
+  "execution_time_seconds": 12.45
+}

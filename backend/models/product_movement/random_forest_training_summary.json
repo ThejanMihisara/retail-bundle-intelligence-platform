@@ -1,0 +1,17 @@
+{
+    "project": "BundleMind",
+    "model": "Random Forest fast/medium/slow product classifier",
+    "raw_rows_used": 200000,
+    "unique_products": 2190,
+    "train_products": 1752,
+    "test_products": 438,
+    "final_training_product_rows": 2190,
+    "accuracy": 0.9726,
+    "weighted_f1": 0.9726,
+    "cv_weighted_f1_mean": 0.9634,
+    "movement_distribution": {
+        "Medium Moving": 744,
+        "Slow Moving": 723,
+        "Fast Moving": 723
+    }
+}

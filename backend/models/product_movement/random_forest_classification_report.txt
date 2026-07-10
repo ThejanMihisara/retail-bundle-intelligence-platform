@@ -1,0 +1,19 @@
+BundleMind Random Forest Product Movement Classification Report
+===========================================================
+
+Raw transaction rows used for feature engineering: 200000
+Product rows used for model training/evaluation: 2190
+Accuracy: 0.9726
+Weighted F1 Score: 0.9726
+3-Fold CV Weighted F1 Mean: 0.9634
+3-Fold CV Weighted F1 Std: 0.0062
+
+               precision    recall  f1-score   support
+
+  Fast Moving       0.99      0.99      0.99       145
+Medium Moving       0.96      0.96      0.96       149
+  Slow Moving       0.97      0.97      0.97       144
+
+     accuracy                           0.97       438
+    macro avg       0.97      0.97      0.97       438
+ weighted avg       0.97      0.97      0.97       438
