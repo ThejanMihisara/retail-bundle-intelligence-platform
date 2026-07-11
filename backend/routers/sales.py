@@ -9,7 +9,6 @@ from utils.dependencies import get_current_user
 import pandas as pd
 from datetime import datetime
 import io
-from routers.forecast import fill_historical_gap_to_may_2026
 
 router = APIRouter(prefix="/api/sales", tags=["sales"])
 
@@ -212,8 +211,6 @@ async def get_sales_monthly(db: Session = Depends(get_db), _: User = Depends(get
             for i in range(len(months_list))
         ]
 
-    # Fill gap to 2026-05
-    historical = fill_historical_gap_to_may_2026(historical)
     return historical
 
 @router.get("/categories")
@@ -346,3 +343,20 @@ async def upload_csv(
         "total_rows_processed": len(df),
         "validation_errors": errors[:50] # return top 50 errors
     }
+
+
+@router.delete("/clear")
+async def clear_sales(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user)
+):
+    try:
+        db.query(SalesTransaction).delete()
+        db.commit()
+        return {"status": "success", "message": "All sales transactions deleted successfully from database"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear sales transactions: {e}"
+        )

@@ -8,7 +8,6 @@ from services.model_service import model_service
 from utils.dependencies import get_current_user
 import pandas as pd
 from datetime import datetime
-from routers.forecast import fill_historical_gap_to_may_2026
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -130,8 +129,6 @@ async def get_monthly_sales(db: Session = Depends(get_db), _: User = Depends(get
             for i in range(len(months_list))
         ]
 
-    # Fill gap to 2026-05
-    historical = fill_historical_gap_to_may_2026(historical)
     return historical
 
 @router.get("/category-performance")

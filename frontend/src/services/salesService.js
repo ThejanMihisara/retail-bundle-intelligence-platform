@@ -27,3 +27,6 @@ export const uploadCsv = (file) => {
     }
   });
 };
+
+export const clearSales = () =>
+  axios.delete(`${BASE_URL}/sales/clear`, { headers: authHeaders() });

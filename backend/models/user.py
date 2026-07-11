@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 from sqlalchemy import Boolean, DateTime, Enum, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
 
 
@@ -20,5 +20,3 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.manager, nullable=False)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-
-    datasets = relationship("Dataset", back_populates="owner", cascade="all, delete-orphan")

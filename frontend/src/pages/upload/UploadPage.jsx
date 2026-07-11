@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { uploadCsv } from "../../services/salesService";
+import { uploadCsv, clearSales } from "../../services/salesService";
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [result, setResult] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef(null);
@@ -47,13 +48,52 @@ const UploadPage = () => {
     }
   };
 
+  const handleClear = async () => {
+    const confirmClear = window.confirm(
+      "Are you sure you want to delete all uploaded sales transactions from the database? This action cannot be undone."
+    );
+    if (!confirmClear) return;
+
+    setClearing(true);
+    try {
+      await clearSales();
+      toast.success("Successfully cleared all sales transactions from the database.");
+      setResult(null);
+      setFile(null);
+    } catch (error) {
+      console.error(error);
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === "string" ? detail : (detail?.message || "Failed to clear sales transactions.");
+      toast.error(msg);
+    } finally {
+      setClearing(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
       {/* Upload Target Box and Status Panel */}
       <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm lg:col-span-2 flex flex-col justify-between gap-6">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800">CSV Data Management</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Upload sales transaction records into MySQL database</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">CSV Data Management</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Upload sales transaction records into MySQL database</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={clearing}
+            className="px-4 py-2.5 text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 active:scale-[0.98] border border-red-200/40 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {clearing ? <LoadingSpinner label="Clearing..." /> : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Clear Database
+              </>
+            )}
+          </button>
         </div>
 
         {/* Drag and Drop Container */}

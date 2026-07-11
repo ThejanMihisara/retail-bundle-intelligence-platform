@@ -89,35 +89,6 @@ def generate_statistical_forecast(historical_data: list, months_ahead: int = 6):
     return forecast_results
 
 
-def fill_historical_gap_to_may_2026(historical: list) -> list:
-    """
-    If historical data ends before 2026-05, generate predictions to fill the gap up to 2026-05.
-    Returns the extended historical list.
-    """
-    if not historical:
-        return []
-        
-    df_hist = pd.DataFrame(historical)
-    df_hist['month_dt'] = pd.to_datetime(df_hist['month'] + "-01")
-    latest_month_dt = df_hist['month_dt'].max()
-    
-    target_end_dt = pd.to_datetime("2026-05-01")
-    
-    if latest_month_dt < target_end_dt:
-        # Calculate number of months between latest_month_dt and 2026-05
-        gap_months = (target_end_dt.year - latest_month_dt.year) * 12 + (target_end_dt.month - latest_month_dt.month)
-        if gap_months > 0:
-            gap_forecast = generate_statistical_forecast(historical, gap_months)
-            for f in gap_forecast:
-                historical.append({
-                    "month": f["month"],
-                    "revenue": float(f["revenue"]),
-                    "profit": float(f["profit"]),
-                    "quantity": float(f["quantity"])
-                })
-    return historical
-
-
 @router.get("/demand")
 async def get_demand_forecast(
     product_id: Optional[str] = None,
@@ -197,7 +168,6 @@ async def get_demand_forecast(
             for i in range(len(months_list))
         ]
 
-    historical = fill_historical_gap_to_may_2026(historical)
     forecast = generate_statistical_forecast(historical, months)
     
     return {

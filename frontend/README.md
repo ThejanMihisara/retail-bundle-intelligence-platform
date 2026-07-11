@@ -27,7 +27,7 @@ Upload data -> Analyze movement -> Forecast demand -> Generate basket rules -> A
 | --- | --- |
 | Authentication | Login, registration, protected routes, and token based sessions |
 | Dashboard | Sales, profit, and performance signals in one overview |
-| Uploads | Dataset validation and save workflow |
+| Uploads | Sales transaction CSV validation and save workflow |
 | Fast/Slow Analysis | Identify product movement patterns |
 | Forecasting | Run demand forecasting workflows |
 | Basket Rules | Generate and apply basket based rules |
@@ -115,7 +115,7 @@ src/config/api.js
 | --- | --- |
 | `/auth` | Login and registration |
 | `/dashboard` | Main analytics dashboard |
-| `/upload` | Dataset upload and validation |
+| `/upload` | Sales transaction CSV upload and validation |
 | `/fast-slow` | Fast and slow moving product analysis |
 | `/forecast` | Forecasting workflow |
 | `/basket` | Basket rule generation |

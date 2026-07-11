@@ -13,7 +13,7 @@
 
 </div>
 
-BundleMind is a full-stack retail intelligence system that helps teams upload sales datasets, analyze fast and slow moving products, generate market basket rules, recommend product bundles, forecast demand, approve bundles, and export business reports.
+BundleMind is a full-stack retail intelligence system that helps teams upload sales transaction CSVs, analyze fast and slow moving products, generate market basket rules, recommend product bundles, forecast demand, approve bundles, and export business reports.
 
 This repository contains both the **frontend** and **backend** in one place.
 
@@ -33,7 +33,7 @@ Upload data -> Analyze product movement -> Forecast demand -> Generate basket ru
 | --- | --- |
 | Authentication | User registration, login, protected routes, JWT sessions, and admin approval |
 | Dashboard | Sales, profit, performance, and model status overview |
-| Dataset Uploads | Validate and save retail datasets for analytics workflows |
+| Sales Uploads | Validate and save retail transaction CSVs for analytics workflows |
 | Fast/Slow Analysis | Identify product movement patterns and suggest inventory actions |
 | Forecasting | Run product-level demand forecasting workflows |
 | Basket Analysis | Generate and apply market basket rules |
@@ -97,7 +97,6 @@ BundleMind/
 │   ├── models/                # SQLAlchemy database models
 │   ├── ml/                    # ML helper code
 │   ├── ml_models/             # Trained model artifacts
-│   ├── uploads/               # Uploaded datasets
 │   └── utils/                 # Shared utilities
 │
 ├── README.md
@@ -309,7 +308,7 @@ http://localhost:5173
 | --- | --- |
 | `/auth` | Login and registration |
 | `/dashboard` | Main analytics dashboard |
-| `/upload` | Dataset upload and validation |
+| `/upload` | Sales transaction CSV upload and validation |
 | `/fast-slow` | Fast and slow moving product analysis |
 | `/forecast` | Forecasting workflow |
 | `/basket` | Basket rule generation |
@@ -327,9 +326,6 @@ http://localhost:5173
 | POST | `/api/auth/login` | Login and receive a JWT token |
 | POST | `/api/auth/admin/approve/{user_id}` | Approve a user |
 | GET | `/api/auth/users` | List users |
-| POST | `/api/upload/validate` | Validate uploaded dataset |
-| POST | `/api/upload/save` | Save uploaded dataset metadata |
-| GET | `/api/upload/datasets` | List datasets |
 | POST | `/api/fast-slow/analyze` | Analyze fast/slow moving products |
 | GET | `/api/fast-slow/results/{dataset_id}` | Get movement results by dataset |
 | GET | `/api/fast-slow/results` | Get all movement results |

@@ -130,48 +130,48 @@ const DashboardPage = () => {
 
       {/* Movement Velocity Alert Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 hover:-translate-y-1 group">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-sm">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-sm transition-transform duration-300 group-hover:scale-110">
               F
             </div>
             <div>
               <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Fast Moving</p>
-              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5">{overview.fast_moving_count} Products</h3>
+              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5 group-hover:text-slate-900 transition-colors">{overview.fast_moving_count} Products</h3>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 uppercase">High Velocity</span>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-600 uppercase">High Velocity</span>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 hover:-translate-y-1 group">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-sm">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-sm transition-transform duration-300 group-hover:scale-110">
               M
             </div>
             <div>
               <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Medium Moving</p>
-              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5">{overview.medium_moving_count} Products</h3>
+              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5 group-hover:text-slate-900 transition-colors">{overview.medium_moving_count} Products</h3>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600 uppercase">Stable</span>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-blue-50 text-blue-600 uppercase">Stable</span>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 flex items-center justify-between shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 hover:-translate-y-1 group">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-sm">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold text-sm transition-transform duration-300 group-hover:scale-110">
               S
             </div>
             <div>
               <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Slow Moving</p>
-              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5">{overview.slow_moving_count} Products</h3>
+              <h3 className="text-xl font-extrabold text-slate-800 mt-0.5 group-hover:text-slate-900 transition-colors">{overview.slow_moving_count} Products</h3>
             </div>
           </div>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-600 uppercase">Promote</span>
+          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-amber-50 text-amber-600 uppercase">Promote</span>
         </div>
       </div>
 
       {/* Chart Row */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Monthly Sales & Profit Chart */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 flex flex-col">
           <div className="mb-4">
             <h2 className="text-base font-bold text-slate-800">Monthly Sales Trends</h2>
             <p className="text-xs text-slate-400">Monthly performance tracking for revenue and profit</p>
@@ -196,7 +196,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Category Performance Chart */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 flex flex-col">
           <div className="mb-4">
             <h2 className="text-base font-bold text-slate-800">Category Share Performance</h2>
             <p className="text-xs text-slate-400">Revenue generation breakdown by product department</p>
@@ -221,7 +221,7 @@ const DashboardPage = () => {
       {/* Tables and Insights Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         {/* Top selling products table */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-2 flex flex-col">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 lg:col-span-2 flex flex-col">
           <div className="mb-4 flex justify-between items-center">
             <div>
               <h2 className="text-base font-bold text-slate-800">Top-Selling Products</h2>
@@ -263,7 +263,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Insights & Actions panel */}
-        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col justify-between">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm hover:shadow-md hover:border-slate-200/85 transition-all duration-300 flex flex-col justify-between">
           <div className="flex-1 flex flex-col">
             <h2 className="text-base font-bold text-slate-800 mb-1">Recent Model Insights</h2>
             <p className="text-xs text-slate-400 mb-4">ML alerts generated from FP-Growth and Random Forest outputs</p>

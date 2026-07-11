@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import SessionLocal, initialize_database
-from routers import auth, dashboard, sales, products, bundles, forecast, models
+from routers import auth, dashboard, sales, products, bundles, forecast, ml_models
 from services.auth_service import seed_admin_user
 from services.model_service import model_service
 
@@ -43,7 +43,7 @@ app.include_router(sales.router)
 app.include_router(products.router)
 app.include_router(bundles.router)
 app.include_router(forecast.router)
-app.include_router(models.router)
+app.include_router(ml_models.router)
 
 
 @app.get("/")

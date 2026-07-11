@@ -4,13 +4,14 @@ import toast from "react-hot-toast";
 import { login as loginApi, register as registerApi } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import authBg from "../../assets/auth-bg.png";
 
 const inputClass = "h-11 w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400 focus:bg-slate-800 transition-all duration-200";
 
 const AuthPage = () => {
   const [tab, setTab] = useState("login");
   const [loading, setLoading] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: "admin@bundlemind.com", password: "" });
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({ fullName: "", email: "", password: "" });
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -45,40 +46,45 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative background glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none"></div>
+    <div 
+      className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${authBg})` }}
+    >
+      {/* Semi-transparent dark overlay to ensure contrast while keeping the background clear */}
+      <div className="absolute inset-0 bg-slate-950/45 pointer-events-none"></div>
 
       <div className="w-full max-w-[480px] z-10">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-400 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-500/10">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-            </svg>
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">BundleMind</h1>
-          <p className="mt-2 text-sm text-slate-400 font-medium">supermarket predictive retail analytics portal</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.45)]">
+            BundleMind
+          </h1>
+          <p className="mt-2 text-sm text-emerald-300 font-semibold tracking-wide drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">
+            supermarket predictive retail analytics portal
+          </p>
         </div>
 
         {/* Tab Toggle */}
-        <div className="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl flex mb-6">
+        <div className="relative bg-slate-900 border border-slate-800 p-1 rounded-2xl flex mb-6 overflow-hidden">
+          {/* Sliding active background indicator */}
+          <div 
+            className={`absolute top-1 bottom-1 w-[calc(50%-6px)] bg-slate-800 border border-slate-700/50 rounded-xl transition-all duration-300 ease-out ${
+              tab === "login" ? "left-1.5" : "left-[calc(50%+4.5px)]"
+            }`}
+          />
           <button 
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-              tab === "login" 
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/50" 
-                : "text-slate-400 hover:text-white"
+            type="button"
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-colors duration-300 z-10 ${
+              tab === "login" ? "text-white" : "text-slate-400 hover:text-white"
             }`} 
             onClick={() => setTab("login")}
           >
             Login Access
           </button>
           <button 
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-              tab === "register" 
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/50" 
-                : "text-slate-400 hover:text-white"
+            type="button"
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-colors duration-300 z-10 ${
+              tab === "register" ? "text-white" : "text-slate-400 hover:text-white"
             }`} 
             onClick={() => setTab("register")}
           >
@@ -88,10 +94,10 @@ const AuthPage = () => {
 
         {/* Login Tab */}
         {tab === "login" ? (
-          <form onSubmit={submitLogin} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4">
+          <form onSubmit={submitLogin} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4 animate-fade-in">
             <div>
               <h2 className="text-xl font-bold text-white mb-1">Welcome Back</h2>
-              <p className="text-xs text-slate-400">Sign in to your manager intelligence console</p>
+              <p className="text-xs text-slate-400">Sign in to continue to BundleMind</p>
             </div>
             
             <div className="flex flex-col gap-1.5 mt-2">
@@ -99,7 +105,7 @@ const AuthPage = () => {
               <input 
                 className={inputClass} 
                 type="email"
-                placeholder="admin@bundlemind.com" 
+                placeholder="example@gmail.com" 
                 value={loginForm.email} 
                 onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} 
                 required
@@ -132,7 +138,7 @@ const AuthPage = () => {
           </form>
         ) : (
           /* Register Tab */
-          <form onSubmit={submitRegister} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4">
+          <form onSubmit={submitRegister} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4 animate-fade-in">
             <div>
               <h2 className="text-xl font-bold text-white mb-1">Create Manager Profile</h2>
               <p className="text-xs text-slate-400">Submit access request for administrative approval</p>
@@ -155,7 +161,7 @@ const AuthPage = () => {
               <input 
                 className={inputClass} 
                 type="email"
-                placeholder="manager@supermarket.com" 
+                placeholder="john@gmail.com" 
                 value={registerForm.email} 
                 onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })} 
                 required

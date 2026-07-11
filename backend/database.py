@@ -21,7 +21,6 @@ class Base(DeclarativeBase):
 
 # Import models here to register them with metadata
 from models.user import User
-from models.dataset import Dataset
 from models.transaction import SalesTransaction
 
 

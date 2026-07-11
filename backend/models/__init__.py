@@ -1,4 +1,4 @@
 from .user import User
-from .dataset import Dataset
+from .transaction import SalesTransaction
 
-__all__ = ["User", "Dataset"]
+__all__ = ["User", "SalesTransaction"]
