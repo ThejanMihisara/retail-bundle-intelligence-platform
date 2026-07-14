@@ -8,11 +8,11 @@ export const getSales = (params = {}) =>
     params
   });
 
-export const getSalesSummary = () =>
-  axios.get(`${BASE_URL}/sales/summary`, { headers: authHeaders() });
+export const getSalesSummary = (params = {}) =>
+  axios.get(`${BASE_URL}/sales/summary`, { headers: authHeaders(), params });
 
-export const getSalesMonthly = () =>
-  axios.get(`${BASE_URL}/sales/monthly`, { headers: authHeaders() });
+export const getSalesMonthly = (params = {}) =>
+  axios.get(`${BASE_URL}/sales/monthly`, { headers: authHeaders(), params });
 
 export const getSalesCategories = () =>
   axios.get(`${BASE_URL}/sales/categories`, { headers: authHeaders() });

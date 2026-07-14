@@ -1,362 +1,398 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from sqlalchemy.orm import Session
+import csv
+import io
+from datetime import datetime
+from typing import Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from database import get_db
-from models.user import User
 from models.transaction import SalesTransaction
+from models.user import User
 from services.model_service import model_service
 from utils.dependencies import get_current_user
-import pandas as pd
-from datetime import datetime
-import io
+from routers.dashboard import clear_dashboard_cache
 
 router = APIRouter(prefix="/api/sales", tags=["sales"])
+SALES_CACHE: dict[tuple, object] = {}
 
-REQUIRED_COLUMNS = [
-    "invoice_id", "sale_date", "product_id", "product_name", 
-    "category", "quantity_sold", "cost_price", "retail_price", 
-    "total_revenue", "profit"
-]
 
+def _clear_sales_cache() -> None:
+    SALES_CACHE.clear()
+
+
+def _apply_sales_filters(query, search: Optional[str] = None, category: Optional[str] = None, start_date: Optional[str] = None, end_date: Optional[str] = None):
+    if search:
+        query = query.filter(
+            SalesTransaction.product_name.ilike(f"%{search}%")
+            | SalesTransaction.product_id.ilike(f"%{search}%")
+            | SalesTransaction.invoice_id.ilike(f"%{search}%")
+        )
+    if category:
+        query = query.filter(SalesTransaction.category.ilike(category))
+    if start_date:
+        try:
+            query = query.filter(SalesTransaction.sale_date >= datetime.fromisoformat(start_date))
+        except ValueError:
+            pass
+    if end_date:
+        try:
+            query = query.filter(SalesTransaction.sale_date <= datetime.fromisoformat(end_date))
+        except ValueError:
+            pass
+    return query
+
+
+# ---------------------------------------------------------------------------
+# GET /api/sales  — paginated transaction list
+# ---------------------------------------------------------------------------
 @router.get("")
-async def list_sales(
-    page: int = 1,
-    limit: int = 50,
-    category: str = None,
-    search: str = None,
-    start_date: str = None,
-    end_date: str = None,
+async def get_sales(
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=50000),
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    include_total: bool = Query(True),
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user)
+    _: User = Depends(get_current_user),
 ):
-    model_service.load_models()
-    db_count = db.query(func.count(SalesTransaction.id)).scalar()
+    query = _apply_sales_filters(db.query(SalesTransaction), search, category, start_date, end_date)
 
-    if db_count and db_count > 0:
-        query = db.query(SalesTransaction)
-        if category:
-            query = query.filter(SalesTransaction.category == category)
-        if search:
-            query = query.filter(SalesTransaction.product_name.ilike(f"%{search}%"))
-        if start_date:
-            try:
-                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
-                query = query.filter(SalesTransaction.sale_date >= start_dt)
-            except ValueError:
-                pass
-        if end_date:
-            try:
-                end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-                query = query.filter(SalesTransaction.sale_date <= end_dt)
-            except ValueError:
-                pass
+    total = query.count() if include_total else 0
+    records = (
+        query.with_entities(
+            SalesTransaction.id,
+            SalesTransaction.invoice_id,
+            SalesTransaction.sale_date,
+            SalesTransaction.product_id,
+            SalesTransaction.product_name,
+            SalesTransaction.category,
+            SalesTransaction.quantity_sold,
+            SalesTransaction.cost_price,
+            SalesTransaction.retail_price,
+            SalesTransaction.total_revenue,
+            SalesTransaction.profit,
+        )
+        .order_by(SalesTransaction.sale_date.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
 
-        total_records = query.count()
-        sales_records = query.order_by(SalesTransaction.sale_date.desc()).offset((page - 1) * limit).limit(limit).all()
-
-        return {
-            "total": total_records,
-            "page": page,
-            "limit": limit,
-            "data": [
-                {
-                    "invoice_id": r.invoice_id,
-                    "sale_date": r.sale_date.isoformat(),
-                    "product_id": r.product_id,
-                    "product_name": r.product_name,
-                    "category": r.category,
-                    "quantity_sold": r.quantity_sold,
-                    "cost_price": r.cost_price,
-                    "retail_price": r.retail_price,
-                    "total_revenue": r.total_revenue,
-                    "profit": r.profit
-                }
-                for r in sales_records
-            ]
-        }
-    else:
-        # Fallback to model predictions data
-        df = model_service.rf_predictions
-        if df is not None:
-            data_list = []
-            for _, row in df.iterrows():
-                product_name = str(row["product_name"])
-                cat = str(row["category"])
-                
-                # Check filter matching
-                if category and cat.lower() != category.lower():
-                    continue
-                if search and search.lower() not in product_name.lower():
-                    continue
-                
-                data_list.append({
-                    "invoice_id": f"INV-{row['product_id']}",
-                    "sale_date": "2026-06-22T00:00:00",
-                    "product_id": str(row["product_id"]),
-                    "product_name": product_name,
-                    "category": cat,
-                    "quantity_sold": int(row["total_quantity_sold"]),
-                    "cost_price": float(row["cost_price"]),
-                    "retail_price": float(row["retail_price"]),
-                    "total_revenue": float(row["total_revenue"]),
-                    "profit": float(row["total_profit"])
-                })
-            
-            total_records = len(data_list)
-            paginated_data = data_list[(page - 1) * limit : page * limit]
-            return {
-                "total": total_records,
-                "page": page,
-                "limit": limit,
-                "data": paginated_data
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "data": [
+            {
+                "id": r.id,
+                "invoice_id": r.invoice_id,
+                "sale_date": r.sale_date.isoformat() if r.sale_date else None,
+                "product_id": r.product_id,
+                "product_name": r.product_name,
+                "category": r.category,
+                "quantity_sold": r.quantity_sold,
+                "cost_price": r.cost_price,
+                "retail_price": r.retail_price,
+                "total_revenue": r.total_revenue,
+                "profit": r.profit,
             }
-        return {"total": 0, "page": page, "limit": limit, "data": []}
+            for r in records
+        ],
+    }
 
+
+# ---------------------------------------------------------------------------
+# GET /api/sales/summary  — aggregate KPIs
+# ---------------------------------------------------------------------------
 @router.get("/summary")
-async def get_sales_summary(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    model_service.load_models()
-    db_count = db.query(func.count(SalesTransaction.id)).scalar()
+async def get_sales_summary(
+    category: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    cache_key = ("summary", category or "", start_date or "", end_date or "")
+    if cache_key in SALES_CACHE:
+        return SALES_CACHE[cache_key]
 
-    if db_count and db_count > 0:
-        stats = db.query(
-            func.count(SalesTransaction.id).label("transaction_count"),
-            func.sum(SalesTransaction.total_revenue).label("revenue"),
-            func.sum(SalesTransaction.profit).label("profit"),
-            func.sum(SalesTransaction.quantity_sold).label("quantity")
-        ).first()
+    query = _apply_sales_filters(db.query(SalesTransaction), category=category, start_date=start_date, end_date=end_date)
 
-        total_rev = float(stats.revenue or 0.0)
-        total_prof = float(stats.profit or 0.0)
-        margin = (total_prof / total_rev * 100) if total_rev > 0 else 0.0
+    stats = query.with_entities(
+        func.count(SalesTransaction.id).label("total_records"),
+        func.count(func.distinct(SalesTransaction.invoice_id)).label("total_invoices"),
+        func.count(func.distinct(SalesTransaction.product_id)).label("total_products"),
+        func.sum(SalesTransaction.quantity_sold).label("total_quantity"),
+        func.sum(SalesTransaction.total_revenue).label("total_revenue"),
+        func.sum(SalesTransaction.profit).label("total_profit"),
+    ).first()
 
-        return {
-            "total_records": db_count,
-            "total_revenue": round(total_rev, 2),
-            "total_profit": round(total_prof, 2),
-            "profit_margin": round(margin, 2),
-            "quantity_sold": int(stats.quantity or 0)
-        }
-    else:
-        df = model_service.rf_predictions
-        if df is not None:
-            total_rev = float(df["total_revenue"].sum())
-            total_prof = float(df["total_profit"].sum())
-            total_qty = int(df["total_quantity_sold"].sum())
-            margin = (total_prof / total_rev * 100) if total_rev > 0 else 0.0
-            return {
-                "total_records": len(df),
-                "total_revenue": round(total_rev, 2),
-                "total_profit": round(total_prof, 2),
-                "profit_margin": round(margin, 2),
-                "quantity_sold": total_qty
-            }
-        return {
-            "total_records": 0,
-            "total_revenue": 0.0,
-            "total_profit": 0.0,
-            "profit_margin": 0.0,
-            "quantity_sold": 0
-        }
+    total_revenue = round(float(stats.total_revenue or 0.0), 2)
+    total_profit  = round(float(stats.total_profit  or 0.0), 2)
+    profit_margin = round((total_profit / total_revenue * 100), 2) if total_revenue > 0 else 0.0
 
+    result = {
+        "total_records":  int(stats.total_records  or 0),
+        "total_invoices": int(stats.total_invoices or 0),
+        "total_products": int(stats.total_products or 0),
+        "total_quantity": int(stats.total_quantity or 0),
+        "quantity_sold":  int(stats.total_quantity or 0),   # alias for frontend compatibility
+        "total_revenue":  total_revenue,
+        "total_profit":   total_profit,
+        "profit_margin":  profit_margin,
+    }
+    SALES_CACHE[cache_key] = result
+    return result
+
+
+# ---------------------------------------------------------------------------
+# GET /api/sales/monthly  — revenue/profit/quantity grouped by month
+# ---------------------------------------------------------------------------
 @router.get("/monthly")
-async def get_sales_monthly(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    model_service.load_models()
-    db_count = db.query(func.count(SalesTransaction.id)).scalar()
+async def get_sales_monthly(
+    category: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    cache_key = ("monthly", category or "", start_date or "", end_date or "")
+    if cache_key in SALES_CACHE:
+        return SALES_CACHE[cache_key]
 
-    historical = []
-    if db_count and db_count > 0:
-        results = db.query(
+    query = _apply_sales_filters(db.query(SalesTransaction), category=category, start_date=start_date, end_date=end_date)
+
+    results = (
+        query.with_entities(
             func.date_format(SalesTransaction.sale_date, "%Y-%m").label("month"),
             func.sum(SalesTransaction.total_revenue).label("revenue"),
             func.sum(SalesTransaction.profit).label("profit"),
-            func.sum(SalesTransaction.quantity_sold).label("quantity")
-        ).group_by("month").order_by("month").all()
+            func.sum(SalesTransaction.quantity_sold).label("quantity"),
+        )
+        .group_by("month")
+        .order_by("month")
+        .all()
+    )
 
-        historical = [
-            {
-                "month": r.month,
-                "revenue": float(r.revenue or 0.0),
-                "profit": float(r.profit or 0.0),
-                "quantity": float(r.quantity or 0.0)
-            }
-            for r in results
-        ]
-    else:
-        df = model_service.rf_predictions
-        if df is None or len(df) == 0:
-            total_monthly_qty = 5000.0
-            total_monthly_rev = 150000.0
-            total_monthly_prof = 15000.0
-        else:
-            total_monthly_qty = df["avg_monthly_quantity"].sum()
-            total_monthly_rev = df["total_revenue"].sum() / 24 # 24 active months
-            total_monthly_prof = df["total_profit"].sum() / 24
-        
-        # Generate 24-month historical baseline (2024-01 to 2025-12)
-        months_list = []
-        for year in [2024, 2025]:
-            for m in range(1, 13):
-                months_list.append(f"{year}-{m:02d}")
-                
-        base_shares = [0.9, 0.95, 1.05, 1.0, 1.1, 1.15, 1.0, 0.95, 1.05, 1.1, 1.2, 1.25]
-        shares = base_shares + [s * 1.08 for s in base_shares] # Add 8% growth for 2025
-        
-        historical = [
-            {
-                "month": months_list[i],
-                "revenue": round(total_monthly_rev * shares[i], 2),
-                "profit": round(total_monthly_prof * shares[i], 2),
-                "quantity": round(total_monthly_qty * shares[i], 2)
-            }
-            for i in range(len(months_list))
-        ]
+    result = [
+        {
+            "month": r.month,
+            "revenue": round(float(r.revenue or 0.0), 2),
+            "profit": round(float(r.profit or 0.0), 2),
+            "quantity": int(r.quantity or 0),
+        }
+        for r in results
+    ]
+    SALES_CACHE[cache_key] = result
+    return result
 
-    return historical
 
+# ---------------------------------------------------------------------------
+# GET /api/sales/categories  — distinct category list
+# ---------------------------------------------------------------------------
 @router.get("/categories")
-async def get_sales_categories(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
-    model_service.load_models()
-    db_count = db.query(func.count(SalesTransaction.id)).scalar()
+async def get_sales_categories(
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    cache_key = ("categories",)
+    if cache_key in SALES_CACHE:
+        return SALES_CACHE[cache_key]
 
-    if db_count and db_count > 0:
-        categories = db.query(SalesTransaction.category).distinct().all()
-        return [c[0] for c in categories if c[0]]
-    else:
-        df = model_service.rf_predictions
-        if df is not None:
-            return sorted(df["category"].dropna().unique().tolist())
-        return []
+    rows = (
+        db.query(SalesTransaction.category)
+        .distinct()
+        .order_by(SalesTransaction.category)
+        .all()
+    )
+    result = [r.category for r in rows]
+    SALES_CACHE[cache_key] = result
+    return result
+
+
+# ---------------------------------------------------------------------------
+# POST /api/sales/upload-csv  — bulk import from CSV file
+# ---------------------------------------------------------------------------
+EXPECTED_COLUMNS = {
+    "invoice_id", "sale_date", "product_id", "product_name",
+    "category", "quantity_sold", "cost_price", "retail_price",
+    "total_revenue", "profit",
+}
+
+DATE_FORMATS = ("%d/%m/%Y", "%m/%d/%Y")
+BULK_INSERT_BATCH_SIZE = 20000
+
+
+def parse_sale_date(value: str) -> datetime:
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        pass
+
+    for fmt in DATE_FORMATS:
+        try:
+            return datetime.strptime(value, fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Unrecognised date format: {value!r}")
+
 
 @router.post("/upload-csv")
 async def upload_csv(
     file: UploadFile = File(...),
+    dedupe_existing: bool = Query(False),
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user)
+    _: User = Depends(get_current_user),
 ):
-    filename = file.filename or ""
-    if not filename.lower().endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only CSV files are allowed.")
-    
-    try:
-        content = await file.read()
-        df = pd.read_csv(io.StringIO(content.decode("utf-8")))
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=f"Failed to read CSV file: {e}")
+    if not file.filename.lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only .csv files are accepted.")
 
-    # Column verification
-    detected = [str(col).strip() for col in df.columns]
-    lower_to_actual = {col.lower(): col for col in detected}
-    
-    missing = [col for col in REQUIRED_COLUMNS if col not in lower_to_actual]
+    content = await file.read()
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = content.decode("latin-1")
+
+    reader = csv.DictReader(io.StringIO(text))
+    headers = set(reader.fieldnames or [])
+    missing = EXPECTED_COLUMNS - headers
     if missing:
         raise HTTPException(
             status_code=422,
-            detail={
-                "message": f"Validation failed. Missing required columns: {', '.join(missing)}",
-                "missing": missing,
-                "detected": detected
-            }
+            detail=f"CSV is missing required columns: {', '.join(sorted(missing))}",
         )
 
-    # Get column mappings case-insensitively
-    col_mapping = {col: lower_to_actual[col] for col in REQUIRED_COLUMNS}
-
-    # Fetch existing unique transaction keys to avoid duplicate inserts
-    # Key format: (invoice_id, product_id, sale_date)
-    existing_records = db.query(
-        SalesTransaction.invoice_id,
-        SalesTransaction.product_id,
-        SalesTransaction.sale_date
-    ).all()
-    
-    # Store standard date strings as keys for fast matching
-    existing_keys = {
-        (r.invoice_id, r.product_id, r.sale_date.strftime("%Y-%m-%d %H:%M:%S"))
-        for r in existing_records
-    }
-
-    inserted_count = 0
-    duplicate_count = 0
+    pending_rows = []
     errors = []
+    seen_in_csv = set()
+    duplicates = 0
+    parse_date = parse_sale_date
 
-    # Process and save rows
-    db_batch = []
-    for idx, row in df.iterrows():
+    max_batch = db.query(func.max(SalesTransaction.upload_batch)).scalar() or 0
+    new_batch = max_batch + 1
+
+    for i, row in enumerate(reader, start=2):
         try:
-            inv_id = str(row[col_mapping["invoice_id"]]).strip()
-            prod_id = str(row[col_mapping["product_id"]]).strip()
-            raw_date = row[col_mapping["sale_date"]]
-            
-            # Parse date safely
-            try:
-                parsed_date = pd.to_datetime(raw_date)
-                date_str = parsed_date.strftime("%Y-%m-%d %H:%M:%S")
-            except Exception:
-                errors.append(f"Row {idx+1}: Invalid date format '{raw_date}'")
+            invoice_id = row["invoice_id"].strip()
+            product_id = row["product_id"].strip()
+            sale_date = parse_date(row["sale_date"].strip())
+            key = (invoice_id, product_id, sale_date)
+
+            if key in seen_in_csv:
+                duplicates += 1
                 continue
+            seen_in_csv.add(key)
 
-            # Check duplicates
-            key = (inv_id, prod_id, date_str)
-            if key in existing_keys:
-                duplicate_count += 1
-                continue
+            pending_rows.append({
+                "invoice_id": invoice_id,
+                "sale_date": sale_date,
+                "product_id": product_id,
+                "product_name": row["product_name"].strip(),
+                "category": row["category"].strip(),
+                "quantity_sold": int(float(row["quantity_sold"])),
+                "cost_price": float(row["cost_price"]),
+                "retail_price": float(row["retail_price"]),
+                "total_revenue": float(row["total_revenue"]),
+                "profit": float(row["profit"]),
+                "upload_batch": new_batch,
+            })
+        except Exception as exc:
+            errors.append(f"Row {i}: {exc}")
 
-            qty = int(row[col_mapping["quantity_sold"]])
-            cost = float(row[col_mapping["cost_price"]])
-            retail = float(row[col_mapping["retail_price"]])
-            revenue = float(row[col_mapping["total_revenue"]])
-            profit = float(row[col_mapping["profit"]])
+    if not pending_rows and not errors and duplicates == 0:
+        return {
+            "status": "success",
+            "inserted_count": 0,
+            "total_rows_processed": 0,
+            "duplicate_count": 0,
+            "validation_errors": [],
+            "message": "CSV file was empty.",
+        }
 
-            transaction = SalesTransaction(
-                invoice_id=inv_id,
-                sale_date=parsed_date,
-                product_id=prod_id,
-                product_name=str(row[col_mapping["product_name"]]).strip(),
-                category=str(row[col_mapping["category"]]).strip(),
-                quantity_sold=qty,
-                cost_price=cost,
-                retail_price=retail,
-                total_revenue=revenue,
-                profit=profit
-            )
-            
-            db_batch.append(transaction)
-            existing_keys.add(key) # Add to prevent internal file duplicates
-            inserted_count += 1
+    existing_keys = set()
+    if dedupe_existing and pending_rows:
+        # This check can be expensive on large databases, so it is opt-in.
+        min_date = min(row["sale_date"] for row in pending_rows)
+        max_date = max(row["sale_date"] for row in pending_rows)
+        existing = db.query(
+            SalesTransaction.invoice_id,
+            SalesTransaction.product_id,
+            SalesTransaction.sale_date,
+        ).filter(
+            SalesTransaction.sale_date >= min_date,
+            SalesTransaction.sale_date <= max_date,
+        ).all()
+        existing_keys = {(r[0], r[1], r[2]) for r in existing}
 
-            if len(db_batch) >= 1000:
-                db.bulk_save_objects(db_batch)
-                db.commit()
-                db_batch = []
+    inserted = 0
+    insert_buffer = []
+    for row in pending_rows:
+        key = (row["invoice_id"], row["product_id"], row["sale_date"])
+        if key in existing_keys:
+            duplicates += 1
+            continue
 
-        except Exception as e:
-            errors.append(f"Row {idx+1}: Data error - {e}")
+        insert_buffer.append(row)
+        if len(insert_buffer) >= BULK_INSERT_BATCH_SIZE:
+            db.bulk_insert_mappings(SalesTransaction, insert_buffer)
+            inserted += len(insert_buffer)
+            insert_buffer.clear()
 
-    if db_batch:
-        db.bulk_save_objects(db_batch)
-        db.commit()
+    if insert_buffer:
+        db.bulk_insert_mappings(SalesTransaction, insert_buffer)
+        inserted += len(insert_buffer)
+
+    db.commit()
+    model_service.clear_live_caches()
+    _clear_sales_cache()
+    clear_dashboard_cache()
+
+    latest_sale_date = None
+    if inserted > 0:
+        latest_sale_date_obj = db.query(func.max(SalesTransaction.sale_date)).scalar()
+        if latest_sale_date_obj:
+            if isinstance(latest_sale_date_obj, datetime):
+                latest_sale_date = latest_sale_date_obj.date().isoformat()
+            else:
+                latest_sale_date = latest_sale_date_obj.isoformat()
+
+    total_rows = inserted + duplicates + len(errors)
+    status = "success" if not errors else ("partial_success" if inserted > 0 else "error")
 
     return {
-        "status": "success" if not errors else "partial_success",
-        "inserted_count": inserted_count,
-        "duplicate_count": duplicate_count,
-        "total_rows_processed": len(df),
-        "validation_errors": errors[:50] # return top 50 errors
+        "status": status,
+        "inserted_count": inserted,
+        "total_rows_processed": total_rows,
+        "duplicate_count": duplicates,
+        "validation_errors": errors[:20],
+        "message": f"Successfully inserted {inserted} record(s). Skipped {duplicates} duplicate(s).",
+        "latest_sale_date": latest_sale_date,
     }
 
 
+# ---------------------------------------------------------------------------
+# DELETE /api/sales/clear  — wipe all transactions
+# ---------------------------------------------------------------------------
 @router.delete("/clear")
 async def clear_sales(
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user)
+    _: User = Depends(get_current_user),
 ):
-    try:
-        db.query(SalesTransaction).delete()
-        db.commit()
-        return {"status": "success", "message": "All sales transactions deleted successfully from database"}
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to clear sales transactions: {e}"
-        )
+    max_batch = db.query(func.max(SalesTransaction.upload_batch)).scalar()
+
+    if max_batch is not None:
+        deleted = db.query(SalesTransaction).filter(SalesTransaction.upload_batch == max_batch).delete()
+    else:
+        deleted = db.query(SalesTransaction).delete()
+
+    db.commit()
+    model_service.clear_live_caches()
+    _clear_sales_cache()
+    clear_dashboard_cache()
+
+    message = f"Cleared {deleted} sales transaction(s) from the latest uploaded dataset." if max_batch is not None else f"Cleared {deleted} sales transaction(s)."
+    return {"deleted": deleted, "message": message}

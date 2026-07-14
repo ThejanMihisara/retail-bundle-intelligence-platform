@@ -1,5 +1,19 @@
+import enum
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel, EmailStr
+
+
+class TokenPayload(BaseModel):
+    sub: str
+    email: str
+    role: str
+    exp: int
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 
 class UserCreate(BaseModel):
@@ -13,17 +27,22 @@ class UserLogin(BaseModel):
     password: str
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
 class UserOut(BaseModel):
     id: int
     full_name: str
-    email: EmailStr
+    email: str
     role: str
     is_approved: bool
+    status: str
+    must_change_password: bool
+    invited_at: Optional[datetime] = None
+    last_login_at: Optional[datetime] = None
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    class Config:
+        from_attributes = True
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import DateTime, Integer, Float, String
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
@@ -17,3 +18,4 @@ class SalesTransaction(Base):
     retail_price: Mapped[float] = mapped_column(Float, nullable=False)
     total_revenue: Mapped[float] = mapped_column(Float, nullable=False)
     profit: Mapped[float] = mapped_column(Float, nullable=False)
+    upload_batch: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)

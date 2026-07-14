@@ -20,6 +20,13 @@ export const recommendBundles = (product, limit = 5) =>
 export const getBundlesSummary = () =>
   axios.get(`${BASE_URL}/bundles/summary`, { headers: authHeaders() });
 
+export const getBundlePeriodAnalysis = (params = {}, config = {}) =>
+  axios.get(`${BASE_URL}/bundles/period-analysis`, {
+    headers: authHeaders(),
+    params,
+    ...config,
+  });
+
 export const getAssociationRules = (params = {}) =>
   axios.get(`${BASE_URL}/bundles/rules`, { 
     headers: authHeaders(),

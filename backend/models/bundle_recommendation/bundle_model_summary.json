@@ -1,0 +1,10 @@
+{
+  "dataset_rows": 200000,
+  "products": 2190,
+  "invoices": 21138,
+  "train_invoices": 16898,
+  "test_invoices": 4240,
+  "frequent_itemsets": 1537,
+  "association_rules": 4618,
+  "final_bundles": 500
+}

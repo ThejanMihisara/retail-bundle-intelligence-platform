@@ -1,0 +1,60 @@
+=== Row 24 (Month 7, Bundle 311) vs Base ===
+Period recommendation:
+  period_type: month
+  period_start: 2026-07-01
+  period_end: 2026-07-31
+  period_label: July 2026
+  bundle_rank: 1
+  bundle_id: 311
+  product_count: 6
+  product_ids: 1478,2056,2172,2280,2344,2378
+  product_names: White Sugar 1kg (Pkt)|Maggi Coconut Milk Powder 125g|Wijaya Curry Powder 250g|Araliya Premium Nadu Rice 1kg|Coconut Oil 750ml (loose)|Zesta Tea (BOPF) 390g
+  categories: Beverages|Cooking Essentials|Dairy & Chilled|Staples & Dry Groceries
+  movement_labels: Fast|Fast|Fast|Fast|Fast|Fast
+  fast_product_count: 6
+  medium_product_count: 0
+  slow_product_count: 0
+  fp_growth_support: 0.0200274402081631
+  avg_pair_confidence: 0.5393096348500278
+  avg_pair_lift: 12.11169649083392
+  graph_density: 0.8
+  test_exact_support: 0.0
+  test_attachment_rate: 0.0669811320754717
+  test_average_overlap: 0.3134433962264151
+  test_lift: 0.0
+  seasonal_demand_score: 0.0060282723376195
+  period_bundle_score: 0.8294172909655785
+  estimated_bundle_retail_price: 2290.0
+  estimated_bundle_profit: 176.09
+  insight: 6 fast + 0 medium + 0 slow products; seasonally ranked for July 2026.
+  source: fp_growth_seasonal
+Base recommendation:
+  bundle_id: 311
+  product_ids: 1478,2056,2172,2280,2344,2378
+  product_count: 6
+  product_names: White Sugar 1kg (Pkt)|Maggi Coconut Milk Powder 125g|Wijaya Curry Powder 250g|Araliya Premium Nadu Rice 1kg|Coconut Oil 750ml (loose)|Zesta Tea (BOPF) 390g
+  categories: Beverages|Cooking Essentials|Dairy & Chilled|Staples & Dry Groceries
+  movement_labels: Fast|Fast|Fast|Fast|Fast|Fast
+  fast_product_count: 6
+  medium_product_count: 0
+  slow_product_count: 0
+  fp_growth_support: 0.0200274402081631
+  avg_pair_confidence: 0.5393096348500278
+  avg_pair_lift: 12.111696490833921
+  graph_density: 0.8
+  test_exact_support: 0.0
+  test_attachment_rate: 0.0669811320754717
+  test_average_overlap: 0.3134433962264151
+  test_lift: 0.0
+  estimated_bundle_retail_price: 2290.0
+  estimated_bundle_profit: 176.09
+  base_bundle_score: 0.7330859835737792
+  source: fp_growth_seasonal
+
+=== Row 12 (ISO Week 29, Bundle 311) ===
+period_bundle_score: 0.8408172909655786
+seasonal_demand_score: 0.0054135867652235
+
+=== Row 0 (Day 195, Bundle 311) ===
+period_bundle_score: 0.8372172909655785
+seasonal_demand_score: 0.0066530691530691
