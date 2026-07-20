@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import authBg from "../../assets/auth-bg.png";
+import BrandLogo from "../../components/shared/BrandLogo";
 
 const inputClass = "h-11 w-full rounded-xl border px-4 text-sm outline-none focus:border-emerald-400 transition-all duration-200 auth-input";
 
@@ -24,8 +25,6 @@ const AuthPage = ({ initialTab = "login" }) => {
   const [requestForm, setRequestForm] = useState({
     name: "",
     email: "",
-    organization: "",
-    department: "",
     requested_role: "analyst",
     reason: "",
   });
@@ -101,12 +100,13 @@ const AuthPage = ({ initialTab = "login" }) => {
 
       <div className="w-full max-w-[480px] z-10">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.45)]">
-            BundleMind
-          </h1>
-          <p className="mt-2 text-sm text-emerald-300 font-semibold tracking-wide drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">
-            supermarket predictive retail analytics portal
-          </p>
+          <BrandLogo
+            size="lg"
+            subtitle="Supermarket Predictive Retail Analytics Portal"
+            centered
+            lightText
+            className="drop-shadow-[0_0_25px_rgba(255,255,255,0.35)]"
+          />
         </div>
 
         <div className="relative p-1 rounded-2xl flex mb-6 overflow-hidden backdrop-blur-md auth-tab-bg">
@@ -147,7 +147,7 @@ const AuthPage = ({ initialTab = "login" }) => {
               <input
                 className={inputClass}
                 type="email"
-                placeholder="example@gmail.com"
+                placeholder="you@company.com"
                 value={loginForm.email}
                 onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                 required
@@ -223,20 +223,9 @@ const AuthPage = ({ initialTab = "login" }) => {
                   <input className={inputClass} type="email" placeholder="you@company.com" value={requestForm.email} onChange={handleRequestChange("email")} required />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider auth-label">Organization</label>
-                    <input className={inputClass} type="text" placeholder="Retail Co." value={requestForm.organization} onChange={handleRequestChange("organization")} />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider auth-label">Department</label>
-                    <input className={inputClass} type="text" placeholder="Operations" value={requestForm.department} onChange={handleRequestChange("department")} />
-                  </div>
-                </div>
-
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Requested Access Level</label>
-                  <select className={inputClass} value={requestForm.requested_role} onChange={handleRequestChange("requested_role")}>
+                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Requested Access Level <span className="text-red-400">*</span></label>
+                  <select className={inputClass} value={requestForm.requested_role} onChange={handleRequestChange("requested_role")} required>
                     {ROLES.map((role) => (
                       <option key={role.value} value={role.value}>{role.label}</option>
                     ))}

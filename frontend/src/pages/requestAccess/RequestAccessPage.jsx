@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { submitAccessRequest } from "../../services/accessRequestService";
+import BrandLogo from "../../components/shared/BrandLogo";
 
 const ROLES = [
   { value: "manager", label: "Manager — Full analytics access" },
@@ -16,8 +17,6 @@ const RequestAccessPage = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    organization: "",
-    department: "",
     requested_role: "analyst",
     reason: "",
   });
@@ -51,20 +50,7 @@ const RequestAccessPage = () => {
     >
       <div className="w-full max-w-lg">
         {/* Brand */}
-        <div className="flex items-center gap-3 mb-8 justify-center">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))", boxShadow: "0 0 24px rgba(16,185,129,0.4)" }}
-          >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-lg font-extrabold tracking-tight" style={{ color: "white" }}>BundleMind</h1>
-            <p className="text-[9px] uppercase tracking-widest font-bold" style={{ color: "var(--accent-green)" }}>Retail Intelligence</p>
-          </div>
-        </div>
+        <BrandLogo size="md" centered lightText className="mb-8" />
 
         <div
           className="rounded-2xl p-8"
@@ -138,40 +124,17 @@ const RequestAccessPage = () => {
                     />
                   </div>
 
-                  {/* Organization + Department */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#64748b" }}>Organization</label>
-                      <input
-                        type="text"
-                        className="h-10 px-3 rounded-xl text-sm font-semibold transition-all outline-none"
-                        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
-                        placeholder="Retail Co."
-                        value={form.organization}
-                        onChange={handleChange("organization")}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#64748b" }}>Department</label>
-                      <input
-                        type="text"
-                        className="h-10 px-3 rounded-xl text-sm font-semibold transition-all outline-none"
-                        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
-                        placeholder="Operations"
-                        value={form.department}
-                        onChange={handleChange("department")}
-                      />
-                    </div>
-                  </div>
-
                   {/* Requested Role */}
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#64748b" }}>Requested Access Level</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#64748b" }}>
+                      Requested Access Level <span style={{ color: "#f87171" }}>*</span>
+                    </label>
                     <select
                       className="h-10 px-3 rounded-xl text-sm font-semibold transition-all outline-none"
                       style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}
                       value={form.requested_role}
                       onChange={handleChange("requested_role")}
+                      required
                     >
                       {ROLES.map((r) => (
                         <option key={r.value} value={r.value} style={{ background: "#0c1120" }}>{r.label}</option>

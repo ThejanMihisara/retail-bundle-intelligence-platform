@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { getCurrentUser } from "../../services/userManagementService";
+import { BrandMark } from "../shared/BrandLogo";
 
 const titles = {
   "/dashboard": { title: "Dashboard", desc: "Overview of store sales, predictive analytics, and retail intelligence insights" },
@@ -10,6 +13,7 @@ const titles = {
   "/basket": { title: "Model Performance & Insights", desc: "Monitor ML model health, features, and summaries" },
   "/bundles": { title: "Promotional Bundle Recommendations", desc: "Optimize sales bundle recommendations via FP-Growth outputs" },
   "/reports": { title: "Sales Analytics & Reports", desc: "Detailed ledger of store transactions, product rankings, and chronological revenue patterns" },
+  "/actual-vs-predicted": { title: "Actual vs Predicted Analysis", desc: "Compare uploaded sales results against saved model predictions" },
 };
 
 /* ── Theme Toggle Icon ───────────────────────────────── */
@@ -31,7 +35,17 @@ const TopBar = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const current = titles[location.pathname] || { title: "BundleMind Suite", desc: "Supermarket retail intelligence and predictive analytics" };
+  const [profile, setProfile] = useState(null);
+  const current = titles[location.pathname] || { title: "BundleMind Settings", desc: "Supermarket retail intelligence and predictive analytics" };
+  const displayUser = profile || user;
+  const displayName = displayUser?.full_name || "User";
+  const displayRole = displayUser?.role || "manager";
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((res) => setProfile(res.data))
+      .catch(() => setProfile(null));
+  }, [user?.email]);
 
   return (
     <header
@@ -65,36 +79,16 @@ const TopBar = () => {
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
         </button>
 
-        {/* ── Notification Bell ── */}
-        <button
-          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200"
-          style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)' }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--btn-ghost-bg-hover)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'var(--btn-ghost-bg)'}
-        >
-          <svg className="w-4 h-4" style={{ color: 'var(--text-body-strong)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </button>
-
         {/* ── Divider ── */}
         <div className="w-px h-7" style={{ background: 'var(--divider)' }} />
 
         {/* ── User card ── */}
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{user?.email || "Manager User"}</p>
-            <p className="text-[10px] capitalize font-medium" style={{ color: 'var(--accent-green-text)' }}>{user?.role || "Store Manager"}</p>
+            <p className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{displayName}</p>
+            <p className="text-[10px] capitalize font-medium" style={{ color: 'var(--accent-green-text)' }}>{displayRole}</p>
           </div>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white flex-shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, var(--accent-green), var(--accent-cyan))',
-              boxShadow: '0 0 14px rgba(16,185,129,0.35)',
-            }}
-          >
-            {user?.initial || "M"}
-          </div>
+          <BrandMark size="sm" />
         </div>
       </div>
     </header>

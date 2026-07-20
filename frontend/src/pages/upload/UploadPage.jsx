@@ -337,16 +337,16 @@ const UploadPage = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr style={{ borderBottom: "1px solid var(--divider)" }}>
-                {["Invoice", "Date", "Product", "Category", "Qty", "Revenue", "Profit"].map((head) => (
-                  <th key={head} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-wider ${["Qty", "Revenue", "Profit"].includes(head) ? "text-right" : ""}`} style={{ color: "var(--text-label)" }}>{head}</th>
+                {["Invoice", "Date", "Product", "Category", "Qty", "Cost Price", "Revenue", "Profit"].map((head) => (
+                  <th key={head} className={`px-4 py-3 text-[10px] font-bold uppercase tracking-wider ${["Qty", "Cost Price", "Revenue", "Profit"].includes(head) ? "text-right" : ""}`} style={{ color: "var(--text-label)" }}>{head}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {salesLoading ? (
-                <tr><td colSpan="7" className="py-12 text-center"><LoadingSpinner label="Loading uploaded data..." /></td></tr>
+                <tr><td colSpan="8" className="py-12 text-center"><LoadingSpinner label="Loading uploaded data..." /></td></tr>
               ) : salesRows.length === 0 ? (
-                <tr><td colSpan="7" className="py-12 text-center text-xs" style={{ color: "var(--text-muted)" }}>No uploaded sales rows found.</td></tr>
+                <tr><td colSpan="8" className="py-12 text-center text-xs" style={{ color: "var(--text-muted)" }}>No uploaded sales rows found.</td></tr>
               ) : salesRows.map((row) => (
                 <tr key={row.id} className="transition-colors hover:bg-[var(--row-hover)]" style={{ borderBottom: "1px solid var(--divider-subtle)" }}>
                   <td className="px-4 py-3 font-semibold" style={{ color: "var(--text-body)" }}>{row.invoice_id}</td>
@@ -354,6 +354,7 @@ const UploadPage = () => {
                   <td className="px-4 py-3 font-bold" style={{ color: "var(--text-primary)" }}>{row.product_name}</td>
                   <td className="px-4 py-3" style={{ color: "var(--text-body)" }}>{row.category}</td>
                   <td className="px-4 py-3 text-right font-semibold" style={{ color: "var(--text-body-strong)" }}>{row.quantity_sold?.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-bold" style={{ color: "var(--text-body)" }}>{formatCurrency(row.cost_price)}</td>
                   <td className="px-4 py-3 text-right font-bold" style={{ color: "var(--text-primary)" }}>{formatCurrency(row.total_revenue)}</td>
                   <td className="px-4 py-3 text-right font-bold" style={{ color: "var(--accent-green-text)" }}>{formatCurrency(row.profit)}</td>
                 </tr>

@@ -15,6 +15,29 @@ from utils.dependencies import get_current_user, require_admin
 router = APIRouter(prefix="/api/access-requests", tags=["access-requests"])
 
 
+def _reviewer_display_name(user: User | None) -> str | None:
+    if not user:
+        return None
+    return user.full_name or "Admin"
+
+
+def _attach_reviewer_names(requests: list[AccessRequest], db: Session) -> list[AccessRequest]:
+    reviewer_emails = {req.reviewed_by for req in requests if req.reviewed_by and "@" in req.reviewed_by}
+    users_by_email = {}
+    if reviewer_emails:
+        users = db.query(User).filter(User.email.in_(reviewer_emails)).all()
+        users_by_email = {user.email: user for user in users}
+
+    for req in requests:
+        if not req.reviewed_by:
+            req.reviewed_by_name = None
+        elif "@" in req.reviewed_by:
+            req.reviewed_by_name = _reviewer_display_name(users_by_email.get(req.reviewed_by)) or "Admin"
+        else:
+            req.reviewed_by_name = req.reviewed_by
+    return requests
+
+
 @router.post("", response_model=AccessRequestOut, status_code=201)
 async def submit_access_request(payload: AccessRequestCreate, db: Session = Depends(get_db)):
     """Public endpoint — anyone can submit a request for access."""
@@ -32,8 +55,6 @@ async def submit_access_request(payload: AccessRequestCreate, db: Session = Depe
     req = AccessRequest(
         name=payload.name,
         email=payload.email,
-        organization=payload.organization,
-        department=payload.department,
         requested_role=payload.requested_role or "analyst",
         reason=payload.reason,
         status=RequestStatus.pending,
@@ -58,7 +79,8 @@ async def list_access_requests(
     query = db.query(AccessRequest)
     if status:
         query = query.filter(AccessRequest.status == status)
-    return query.order_by(AccessRequest.created_at.desc()).all()
+    requests = query.order_by(AccessRequest.created_at.desc()).all()
+    return _attach_reviewer_names(requests, db)
 
 
 @router.patch("/{request_id}/approve", response_model=AccessRequestOut)
@@ -122,6 +144,7 @@ async def approve_access_request(
     try:
         db.commit()
         db.refresh(req)
+        req.reviewed_by_name = _reviewer_display_name(admin)
         return req
     except SQLAlchemyError as exc:
         db.rollback()
@@ -146,6 +169,7 @@ async def reject_access_request(
     req.reviewed_at = datetime.utcnow()
     db.commit()
     db.refresh(req)
+    req.reviewed_by_name = _reviewer_display_name(admin)
     return req
 
 

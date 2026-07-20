@@ -38,6 +38,13 @@ class BundleItem(BaseModel):
     test_attachment_rate: float
     seasonal_demand_score: float
     score: float
+    normal_bundle_retail_price: Optional[float] = None
+    estimated_bundle_cost: Optional[float] = None
+    normal_bundle_profit: Optional[float] = None
+    suggested_discount_pct: Optional[float] = None
+    promo_bundle_price: Optional[float] = None
+    promo_bundle_profit: Optional[float] = None
+    promo_profit_margin: Optional[float] = None
     estimated_revenue: float
     estimated_profit: float
     insight: str

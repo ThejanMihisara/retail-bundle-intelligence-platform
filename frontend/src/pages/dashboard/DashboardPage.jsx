@@ -6,7 +6,9 @@ import { useTheme } from "../../context/ThemeContext";
 import StatCard from "../../components/shared/StatCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
-import { getOverview, getMonthlySales, getCategoryPerformance, getTopProducts, getRecentInsights } from "../../services/dashboardService";
+import { getOverview, getMonthlySales, getCategoryPerformance, getTopProducts } from "../../services/dashboardService";
+import { getMovementPredictions } from "../../services/productService";
+import { getBundlePeriodAnalysis } from "../../services/bundleService";
 
 const card = {
   backgroundColor: 'var(--card-bg)',
@@ -21,11 +23,14 @@ const DashboardPage = () => {
   const [monthlyData, setMonthlyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
-  const [insights, setInsights] = useState([]);
+  const [importantAlerts, setImportantAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const { theme } = useTheme();
   const navigate = useNavigate();
   const todayStr = new Date().toISOString().split('T')[0];
+  const dashboardMovementDate = "2026-01-15";
+  const dashboardBundleDate = "2026-07-20";
   
   // Temporary inputs (for form controls)
   const [granularity, setGranularity] = useState("Month");
@@ -43,16 +48,56 @@ const DashboardPage = () => {
   const labelColor    = theme === 'dark' ? '#94a3b8' : '#475569';
 
   useEffect(() => {
+    let cancelled = false;
     setLoading(true);
-    Promise.all([getOverview(), getMonthlySales(), getCategoryPerformance(), getTopProducts(), getRecentInsights()])
-      .then(([overRes, monthRes, catRes, topRes, insRes]) => {
-        setOverview(overRes.data);
+    setAlertsLoading(true);
+
+    const fastAlertPromise = getMovementPredictions({
+      period_type: "day",
+      selected_date: todayStr,
+      movement_level: "Fast Moving",
+      sort_by: "movement_confidence",
+      sort_desc: true,
+      page: 1,
+      limit: 1,
+    });
+    const slowAlertPromise = getMovementPredictions({
+      period_type: "day",
+      selected_date: todayStr,
+      movement_level: "Slow Moving",
+      sort_by: "movement_confidence",
+      sort_desc: true,
+      page: 1,
+      limit: 1,
+    });
+
+    Promise.all([
+      getOverview(),
+      getMonthlySales(),
+      getCategoryPerformance(),
+      getTopProducts(),
+      getMovementPredictions({ period_type: "month", selected_date: dashboardMovementDate, page: 1, limit: 1 }),
+      getBundlePeriodAnalysis({ period_type: "day", target_date: dashboardBundleDate, page: 1, limit: 1 }),
+    ])
+      .then(([overRes, monthRes, catRes, topRes, movementRes, bundleRes]) => {
+        if (cancelled) return;
+        const movementSummary = movementRes.data?.summary;
+        const bundleSummary = bundleRes.data?.summary;
+        setOverview({
+          ...overRes.data,
+          fast_moving_count: movementSummary?.fast_moving_count ?? overRes.data.fast_moving_count,
+          medium_moving_count: movementSummary?.medium_moving_count ?? overRes.data.medium_moving_count,
+          slow_moving_count: movementSummary?.slow_moving_count ?? overRes.data.slow_moving_count,
+          total_recommended_bundles: bundleSummary?.recommended_bundles ?? bundleRes.data?.total ?? overRes.data.total_recommended_bundles,
+        });
         const months = monthRes.data || [];
         setMonthlyData(months);
         // Force parse numerical revenue values to prevent chart axis sorting/layout bugs
         setCategoryData((catRes.data || []).map(item => ({ ...item, revenue: parseFloat(item.revenue || 0) })));
         setTopProducts(topRes.data);
-        setInsights(insRes.data);
+        setImportantAlerts([
+          { type: "bundle", title: "Top Bundle Opportunity", item: bundleRes.data?.data?.[0] || null },
+        ]);
 
         // Dynamically set default date range based on actual dataset bounds
         if (months.length > 0) {
@@ -68,7 +113,28 @@ const DashboardPage = () => {
         }
       })
       .catch(() => toast.error("Failed to load dashboard metrics from backend."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    Promise.allSettled([fastAlertPromise, slowAlertPromise])
+      .then(([fastResult, slowResult]) => {
+        if (cancelled) return;
+        const fastItem = fastResult.status === "fulfilled" ? fastResult.value.data?.data?.[0] || null : null;
+        const slowItem = slowResult.status === "fulfilled" ? slowResult.value.data?.data?.[0] || null : null;
+        setImportantAlerts((currentAlerts) => [
+          { type: "fast", title: "Highest Fast Moving Confidence", item: fastItem },
+          { type: "slow", title: "Highest Slow Moving Confidence", item: slowItem },
+          ...currentAlerts.filter((alert) => alert.type === "bundle"),
+        ]);
+      })
+      .finally(() => {
+        if (!cancelled) setAlertsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) return <LoadingSpinner label="Loading Executive Dashboard..." fullPage />;
@@ -166,36 +232,51 @@ const DashboardPage = () => {
     startDate   !== DEFAULT_START_DATE  ||
     endDate     !== DEFAULT_END_DATE;
 
+  const getMonthKeysInRange = () => {
+    const sourceMonths = monthlyData.map((item) => item.month).filter(Boolean);
+    const fallbackStart = sourceMonths[0] || DEFAULT_START_DATE.substring(0, 7);
+    const fallbackEnd = sourceMonths[sourceMonths.length - 1] || DEFAULT_END_DATE.substring(0, 7);
+    const startMonth = activeStartDate && activeStartDate.length >= 7 ? activeStartDate.substring(0, 7) : fallbackStart;
+    const endMonth = activeEndDate && activeEndDate.length >= 7 ? activeEndDate.substring(0, 7) : fallbackEnd;
+    const [startYear, startMonthNum] = startMonth.split("-").map(Number);
+    const [endYear, endMonthNum] = endMonth.split("-").map(Number);
+    if (!startYear || !startMonthNum || !endYear || !endMonthNum) return sourceMonths;
+
+    const months = [];
+    const cursor = new Date(startYear, startMonthNum - 1, 1);
+    const end = new Date(endYear, endMonthNum - 1, 1);
+    while (cursor <= end) {
+      months.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`);
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return months;
+  };
+
   const getProcessedChartData = () => {
-    // Derive safe YYYY-MM bounds (fall back to open range if date is missing/invalid)
-    const startMonth = activeStartDate && activeStartDate.length >= 7 ? activeStartDate.substring(0, 7) : null;
-    const endMonth   = activeEndDate   && activeEndDate.length   >= 7 ? activeEndDate.substring(0, 7)   : null;
+    const monthKeys = getMonthKeysInRange();
+    const monthlyByKey = new Map(monthlyData.map((item) => [item.month, item]));
 
-    // 1. Filter monthly source data by date range
-    const filtered = monthlyData.filter(item => {
-      if (startMonth && item.month < startMonth) return false;
-      if (endMonth   && item.month > endMonth)   return false;
-      return true;
-    });
-
-    // 2. Transform based on granularity
     if (activeGranularity === "Year") {
-      const yearly = {};
-      filtered.forEach(item => {
-        const year = item.month.substring(0, 4);
-        if (!yearly[year]) yearly[year] = { month: year, revenue: 0, profit: 0 };
-        yearly[year].revenue += item.revenue;
-        const profitVar = 0.92 + (Math.sin(Number(year)) * 0.08);
-        yearly[year].profit += Math.round(item.profit * profitVar);
+      const years = {};
+      monthKeys.forEach((monthKey) => {
+        const item = monthlyByKey.get(monthKey);
+        const year = monthKey.substring(0, 4);
+        if (!years[year]) years[year] = { month: year, revenue: null, profit: null };
+        if (item) {
+          const profitVar = 0.92 + (Math.sin(Number(year)) * 0.08);
+          years[year].revenue = (years[year].revenue ?? 0) + item.revenue;
+          years[year].profit = (years[year].profit ?? 0) + Math.round(item.profit * profitVar);
+        }
       });
-      return Object.values(yearly);
+      return Object.values(years);
     }
 
     if (activeGranularity === "Week") {
       const weekly = [];
-      filtered.forEach(item => {
-        const monthNum = Number(item.month.replace('-', '')) || 0;
-        const [year, month] = item.month.split("-").map(Number);
+      monthKeys.forEach((monthKey) => {
+        const item = monthlyByKey.get(monthKey);
+        const monthNum = Number(monthKey.replace('-', '')) || 0;
+        const [year, month] = monthKey.split("-").map(Number);
         const monthStart = new Date(year, month - 1, 1);
         const monthEnd = new Date(year, month, 0);
         const monthDays = monthEnd.getDate();
@@ -214,8 +295,8 @@ const DashboardPage = () => {
           weekly.push({
             month: formatWeekRange(visibleStart, visibleEnd),
             periodKey: weekStartKey,
-            revenue: Math.round(item.revenue * weekShare * (0.95 + Math.sin(w + monthNum) * 0.10)),
-            profit: Math.round(item.profit * weekShare * (0.88 + Math.cos(w + monthNum) * 0.12)),
+            revenue: item ? Math.round(item.revenue * weekShare * (0.95 + Math.sin(w + monthNum) * 0.10)) : null,
+            profit: item ? Math.round(item.profit * weekShare * (0.88 + Math.cos(w + monthNum) * 0.12)) : null,
           });
         }
       });
@@ -225,19 +306,20 @@ const DashboardPage = () => {
     if (activeGranularity === "Day") {
       const daily = [];
       const sampleDays = [5, 10, 15, 20, 25];
-      filtered.forEach(item => {
-        const baseRev  = item.revenue / sampleDays.length;
-        const baseProf = item.profit  / sampleDays.length;
-        const monthNum = Number(item.month.replace('-', '')) || 0;
+      monthKeys.forEach((monthKey) => {
+        const item = monthlyByKey.get(monthKey);
+        const baseRev = item ? item.revenue / sampleDays.length : null;
+        const baseProf = item ? item.profit / sampleDays.length : null;
+        const monthNum = Number(monthKey.replace('-', '')) || 0;
         sampleDays.forEach((d, idx) => {
-          const dayStr = `${item.month}-${String(d).padStart(2, '0')}`;
+          const dayStr = `${monthKey}-${String(d).padStart(2, '0')}`;
           // Trim day-level points that fall outside the exact start/end date
           if (activeStartDate && dayStr < activeStartDate) return;
           if (activeEndDate   && dayStr > activeEndDate)   return;
           daily.push({
             month:   dayStr,
-            revenue: Math.round(baseRev  * (0.85 + Math.sin(idx + monthNum) * 0.15)),
-            profit:  Math.round(baseProf * (0.78 + Math.cos(idx + monthNum) * 0.18)),
+            revenue: item ? Math.round(baseRev  * (0.85 + Math.sin(idx + monthNum) * 0.15)) : null,
+            profit:  item ? Math.round(baseProf * (0.78 + Math.cos(idx + monthNum) * 0.18)) : null,
           });
         });
       });
@@ -245,14 +327,20 @@ const DashboardPage = () => {
     }
 
     // Month granularity (default)
-    return filtered.map(item => {
-      const monthNum = Number(item.month.replace('-', '')) || 0;
+    return monthKeys.map((monthKey) => {
+      const item = monthlyByKey.get(monthKey);
+      if (!item) {
+        return { month: monthKey, revenue: null, profit: null };
+      }
+      const monthNum = Number(monthKey.replace('-', '')) || 0;
       return {
         ...item,
         profit: Math.round(item.profit * (0.92 + Math.sin(monthNum) * 0.12)),
       };
     });
   };
+
+  const alertCards = importantAlerts.filter((alert) => alert.item);
 
   return (
     <div className="space-y-7 flex-1 flex flex-col">
@@ -286,7 +374,7 @@ const DashboardPage = () => {
             </svg>
           } 
         />
-        <StatCard label="Promo Bundles" number={overview.total_recommended_bundles}        trend="FP-Growth"                                                                trendColor="emerald" 
+        <StatCard label="Daily Promo Bundles" number={overview.total_recommended_bundles}        trend="Per Day"                                                                trendColor="emerald" 
           icon={
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -329,41 +417,50 @@ const DashboardPage = () => {
           </div>
           
           {/* Filter Section */}
-          <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
+          <div className="flex items-end gap-1.5 flex-nowrap shrink-0">
             {/* Granularity Dropdown */}
-            <div className="relative w-[82px] shrink-0">
-              <select 
-                value={granularity}
-                onChange={(e) => setGranularity(e.target.value)}
-                className="appearance-none h-8 w-full pl-2.5 pr-7 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs cursor-pointer outline-none focus:border-emerald-400 transition-all duration-200"
-              >
-                <option value="Day">Day</option>
-                <option value="Week">Week</option>
-                <option value="Month">Month</option>
-                <option value="Year">Year</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[var(--text-muted)]">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                </svg>
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>View</span>
+              <div className="relative w-[82px] shrink-0">
+                <select 
+                  value={granularity}
+                  onChange={(e) => setGranularity(e.target.value)}
+                  className="appearance-none h-8 w-full pl-2.5 pr-7 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs cursor-pointer outline-none focus:border-emerald-400 transition-all duration-200"
+                >
+                  <option value="Day">Day</option>
+                  <option value="Week">Week</option>
+                  <option value="Month">Month</option>
+                  <option value="Year">Year</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[var(--text-muted)]">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
-            </div>
+            </label>
 
             {/* Start Date */}
-            <input 
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="h-8 w-[122px] px-2 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs outline-none focus:border-emerald-400 transition-all duration-200 shrink-0"
-            />
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>Start Date</span>
+              <input 
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-8 w-[122px] px-2 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs outline-none focus:border-emerald-400 transition-all duration-200 shrink-0"
+              />
+            </label>
 
             {/* End Date */}
-            <input 
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="h-8 w-[122px] px-2 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs outline-none focus:border-emerald-400 transition-all duration-200 shrink-0"
-            />
+            <label className="flex flex-col gap-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>End Date</span>
+              <input 
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-8 w-[122px] px-2 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--text-primary)] font-bold text-xs outline-none focus:border-emerald-400 transition-all duration-200 shrink-0"
+              />
+            </label>
 
             {/* Filter Apply Button */}
             <button
@@ -421,7 +518,7 @@ const DashboardPage = () => {
               <Tooltip
                 {...tooltipStyle}
                 labelFormatter={(label) => label}
-                formatter={(value, name) => [formatCurrency(Number(value || 0)), name]}
+                formatter={(value, name) => [value == null ? "No data" : formatCurrency(Number(value)), name]}
               />
               <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', color: 'var(--text-body)' }} />
               {/* Both lines mapped to the same left Y-Axis */}
@@ -434,25 +531,96 @@ const DashboardPage = () => {
 
       {/* Insights & Category Share Row (Side-by-side) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Recent Model Insights */}
+        {/* Important Alert */}
         <div className="rounded-2xl p-6 flex flex-col justify-between xl:col-span-1" style={card}>
           <div className="flex-1 flex flex-col">
-            <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>AI Predictive Insights</h2>
-            <p className="text-[11px] mb-5" style={{ color: 'var(--text-muted)' }}>Automated recommendations and alerts generated from FP-Growth and Random Forest models</p>
+            <h2 className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Important Alert</h2>
+            <p className="text-[11px] mb-5" style={{ color: 'var(--text-muted)' }}>
+              Daily movement and bundle priorities for {formatDateStr(todayStr)}.
+            </p>
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px]">
-              {insights.map((insight) => {
-                let style = { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.18)', color: 'var(--accent-cyan-text)' };
-                if (insight.type === "warning") style = { background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)', color: '#fbbf24' };
-                if (insight.type === "success")  style = { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.18)', color: 'var(--accent-green-text)' };
+              {alertCards.map((alert) => {
+                const item = alert.item;
+                const isBundle = alert.type === "bundle";
+                const isFast = alert.type === "fast";
+                const style = isBundle
+                  ? { background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.18)', color: 'var(--accent-cyan-text)' }
+                  : isFast
+                  ? { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.18)', color: 'var(--accent-green-text)' }
+                  : { background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#f59e0b' };
+                if (isBundle) {
+                  return (
+                    <div key={alert.type} className="rounded-xl p-4 text-[11px] leading-relaxed" style={style}>
+                      <div className="flex items-start gap-3">
+                        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-wider">{alert.title}</p>
+                          <h3 className="mt-1 text-sm font-extrabold" style={{ color: 'var(--text-primary)' }}>
+                            Bundle #{item.bundle_id}
+                          </h3>
+                          <p className="mt-0.5 font-semibold" style={{ color: 'var(--text-body)' }}>
+                            {item.product_count} products · {item.fast_product_count} fast / {item.slow_product_count} slow
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                          <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Lift</p>
+                          <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{item.lift.toFixed(2)}x</p>
+                        </div>
+                        <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                          <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Confidence</p>
+                          <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{Math.round(item.confidence * 100)}%</p>
+                        </div>
+                        <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                          <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Profit</p>
+                          <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{formatCurrency(item.estimated_profit)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
-                  <div key={insight.id} className="rounded-xl p-3.5 text-[11px] font-semibold leading-relaxed flex items-start gap-3" style={style}>
-                    <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{insight.text}</span>
+                  <div key={alert.type} className="rounded-xl p-4 text-[11px] leading-relaxed" style={style}>
+                    <div className="flex items-start gap-3">
+                      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isFast ? "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" : "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"} />
+                      </svg>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-wider">{alert.title}</p>
+                        <h3 className="mt-1 text-sm font-extrabold truncate" style={{ color: 'var(--text-primary)' }} title={item.product_name}>
+                          {item.product_name}
+                        </h3>
+                        <p className="mt-0.5 font-semibold" style={{ color: 'var(--text-body)' }}>{item.category}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                        <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Confidence</p>
+                        <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{Math.round(item.movement_confidence * 100)}%</p>
+                      </div>
+                      <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                        <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Expected Qty</p>
+                        <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{item.expected_quantity.toLocaleString()}</p>
+                      </div>
+                      <div className="rounded-lg p-2" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                        <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-label)' }}>Revenue</p>
+                        <p className="text-xs font-black" style={{ color: 'var(--text-primary)' }}>{formatCurrency(item.expected_revenue)}</p>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
+              {alertsLoading && alertCards.length === 0 && (
+                <LoadingSpinner label="Loading important alerts..." />
+              )}
+              {!alertsLoading && alertCards.length === 0 && (
+                <div className="rounded-xl p-4 text-[11px] font-semibold" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)', color: 'var(--text-muted)' }}>
+                  No daily movement alerts found for {formatDateStr(todayStr)}.
+                </div>
+              )}
             </div>
           </div>
           <div className="pt-5 mt-5 grid grid-cols-2 gap-3" style={{ borderTop: '1px solid var(--divider)' }}>
@@ -462,7 +630,7 @@ const DashboardPage = () => {
             </button>
             <button onClick={() => navigate("/fast-slow")} className="flex items-center justify-center rounded-xl font-bold text-xs py-3 transition-all duration-200 active:scale-95 hover:bg-[var(--btn-ghost-bg-hover)]"
               style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body-strong)' }}>
-              Slow Movers
+              Product Movement
             </button>
           </div>
         </div>

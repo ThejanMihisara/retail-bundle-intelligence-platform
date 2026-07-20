@@ -21,12 +21,36 @@ const formatDate = (date) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+const parseDate = (dateStr) => new Date(`${dateStr}T00:00:00`);
+
+const getWeekRange = (dateStr) => {
+  const base = parseDate(dateStr);
+  const offset = (base.getDay() + 6) % 7;
+  const start = new Date(base);
+  start.setDate(base.getDate() - offset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return [formatDate(start), formatDate(end)];
+};
+
+const getMonthRange = (dateStr) => {
+  const base = parseDate(dateStr);
+  const start = new Date(base.getFullYear(), base.getMonth(), 1);
+  const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  return [formatDate(start), formatDate(end)];
+};
+
+const APPROVED_BUNDLES_STORAGE_KEY = "bundlemind_approved_bundles";
+
 const BundlesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Selected Date and Period Type from URL, with defaults
   const periodType = searchParams.get("period_type") || "day";
   const targetDate = searchParams.get("target_date") || formatDate(new Date());
+  const defaultRange = periodType === "month" ? getMonthRange(targetDate) : getWeekRange(targetDate);
+  const startDateParam = searchParams.get("start_date") || defaultRange[0];
+  const endDateParam = searchParams.get("end_date") || defaultRange[1];
   const searchParam = searchParams.get("search") || "";
   const categoryParam = searchParams.get("category") || "";
   const movementParam = searchParams.get("movement") || "";
@@ -46,7 +70,14 @@ const BundlesPage = () => {
   const [error, setError] = useState(false);
 
   // Approved bundles set
-  const [approvedBundles, setApprovedBundles] = useState(new Set());
+  const [approvedBundles, setApprovedBundles] = useState(() => {
+    try {
+      const saved = localStorage.getItem(APPROVED_BUNDLES_STORAGE_KEY);
+      return new Set(saved ? JSON.parse(saved) : []);
+    } catch {
+      return new Set();
+    }
+  });
 
   // Cancel token reference to cancel stale requests
   const cancelTokenRef = useRef(null);
@@ -68,33 +99,47 @@ const BundlesPage = () => {
   };
 
   const handleToday = () => {
-    updateParams({ target_date: formatDate(new Date()) });
+    const today = formatDate(new Date());
+    if (periodType === "day") {
+      updateParams({ target_date: today, start_date: "", end_date: "" });
+      return;
+    }
+    const [start, end] = periodType === "week" ? getWeekRange(today) : getMonthRange(today);
+    updateParams({ target_date: end, start_date: start, end_date: end });
   };
 
   const handlePrevPeriod = () => {
-    const d = new Date(targetDate);
+    const d = parseDate(periodType === "day" ? targetDate : endDateParam);
     if (isNaN(d.getTime())) return;
     if (periodType === "day") {
       d.setDate(d.getDate() - 1);
+      updateParams({ target_date: formatDate(d) });
     } else if (periodType === "week") {
       d.setDate(d.getDate() - 7);
+      const [start, end] = getWeekRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
     } else if (periodType === "month") {
       d.setMonth(d.getMonth() - 1);
+      const [start, end] = getMonthRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
     }
-    updateParams({ target_date: formatDate(d) });
   };
 
   const handleNextPeriod = () => {
-    const d = new Date(targetDate);
+    const d = parseDate(periodType === "day" ? targetDate : endDateParam);
     if (isNaN(d.getTime())) return;
     if (periodType === "day") {
       d.setDate(d.getDate() + 1);
+      updateParams({ target_date: formatDate(d) });
     } else if (periodType === "week") {
       d.setDate(d.getDate() + 7);
+      const [start, end] = getWeekRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
     } else if (periodType === "month") {
       d.setMonth(d.getMonth() + 1);
+      const [start, end] = getMonthRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
     }
-    updateParams({ target_date: formatDate(d) });
   };
 
   const handleClearFilters = () => {
@@ -106,18 +151,39 @@ const BundlesPage = () => {
     });
   };
 
+  const handlePeriodTypeChange = (mode) => {
+    if (mode === "day") {
+      updateParams({ period_type: mode, target_date: targetDate, start_date: "", end_date: "" });
+      return;
+    }
+    const [start, end] = mode === "week" ? getWeekRange(targetDate) : getMonthRange(targetDate);
+    updateParams({ period_type: mode, target_date: end, start_date: start, end_date: end });
+  };
+
+  const handleRangeStartChange = (value) => {
+    updateParams({ start_date: value });
+  };
+
+  const handleRangeEndChange = (value) => {
+    updateParams({ end_date: value, target_date: value });
+  };
+
   const handleApprove = (bundleId) => {
-    setApprovedBundles(prev => {
-      const updated = new Set(prev);
-      if (updated.has(bundleId)) {
-        updated.delete(bundleId);
-        toast.success(`Bundle #${bundleId} removed from approvals.`);
-      } else {
-        updated.add(bundleId);
-        toast.success(`Bundle #${bundleId} approved for POS promotion!`);
-      }
-      return updated;
-    });
+    const wasApproved = approvedBundles.has(bundleId);
+    const updated = new Set(approvedBundles);
+    if (updated.has(bundleId)) {
+      updated.delete(bundleId);
+    } else {
+      updated.add(bundleId);
+    }
+    setApprovedBundles(updated);
+    localStorage.setItem(APPROVED_BUNDLES_STORAGE_KEY, JSON.stringify([...updated]));
+    toast.success(
+      wasApproved
+        ? `Bundle #${bundleId} removed from approvals.`
+        : `Bundle #${bundleId} approved for POS promotion!`,
+      { id: `bundle-approval-${bundleId}` }
+    );
   };
 
   const formatCurrency = (value) => {
@@ -125,22 +191,39 @@ const BundlesPage = () => {
   };
 
   const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
-  const formatLift = (value) => `${value.toFixed(2)}×`;
+  const formatLift = (value) => `${value.toFixed(2)}x`;
+  const escapeCsvCell = (value) => {
+    const text = String(value ?? "");
+    return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
 
   const fetchPeriodAnalysis = useCallback(() => {
+    if (periodType !== "day") {
+      if (!startDateParam || !endDateParam) {
+        toast.error("Please select both start and end dates.");
+        return;
+      }
+      if (startDateParam > endDateParam) {
+        toast.error("Start date must be on or before the end date.");
+        return;
+      }
+    }
+
     setLoading(true);
     setError(false);
 
     if (cancelTokenRef.current) {
       cancelTokenRef.current.cancel("Stale request cancelled.");
     }
-    cancelTokenRef.current = axios.CancelToken.source();
+    const requestSource = axios.CancelToken.source();
+    cancelTokenRef.current = requestSource;
 
     const params = {
       period_type: periodType,
-      target_date: targetDate,
+      target_date: periodType === "day" ? targetDate : endDateParam,
       page: pageParam,
       limit: 12,
+      ...(periodType !== "day" && { start_date: startDateParam, end_date: endDateParam }),
       ...(searchParam && { search: searchParam }),
       ...(categoryParam && { category: categoryParam }),
       ...(movementParam && { movement: movementParam }),
@@ -148,7 +231,7 @@ const BundlesPage = () => {
       ...(minConfidenceParam && { min_confidence: parseFloat(minConfidenceParam) }),
     };
 
-    getBundlePeriodAnalysis(params, { cancelToken: cancelTokenRef.current.token })
+    getBundlePeriodAnalysis(params, { cancelToken: requestSource.token })
       .then(res => {
         setBundles(res.data.data || []);
         setSummary(res.data.summary || null);
@@ -164,11 +247,11 @@ const BundlesPage = () => {
         toast.error("Failed to load bundle recommendations.");
       })
       .finally(() => {
-        if (cancelTokenRef.current && !cancelTokenRef.current.token.reason) {
+        if (cancelTokenRef.current === requestSource && !requestSource.token.reason) {
           setLoading(false);
         }
       });
-  }, [periodType, targetDate, pageParam, searchParam, categoryParam, movementParam, minLiftParam, minConfidenceParam]);
+  }, [periodType, targetDate, startDateParam, endDateParam, pageParam, searchParam, categoryParam, movementParam, minLiftParam, minConfidenceParam]);
 
   // Sync debounced search input
   useEffect(() => {
@@ -190,13 +273,34 @@ const BundlesPage = () => {
     fetchPeriodAnalysis();
   }, [fetchPeriodAnalysis]);
 
+  useEffect(() => {
+    return () => {
+      if (cancelTokenRef.current) {
+        cancelTokenRef.current.cancel("Bundle page unmounted.");
+      }
+    };
+  }, []);
+
   const downloadList = () => {
     if (bundles.length === 0) return;
-    const csv = [
-      "Rank,Bundle ID,Product IDs,Product Names,Support,Confidence,Lift,Est. Revenue,Est. Profit,Status",
-      ...bundles.map(b => `${b.bundle_rank},${b.bundle_id},"${b.products.map(p => p.product_id).join(";")}","${b.products.map(p => p.product_name).join(" + ")}",${formatPercent(b.support)},${formatPercent(b.confidence)},${formatLift(b.lift)},${b.estimated_revenue.toFixed(2)},${b.estimated_profit.toFixed(2)},${approvedBundles.has(b.bundle_id) ? "Approved" : "Pending"}`)
-    ].join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const headers = ["Rank", "Bundle ID", "Product IDs", "Product Names", "Support", "Confidence", "Lift", "Normal Price", "Discount %", "Promo Price", "Promo Profit", "Promo Margin", "Status"];
+    const rows = bundles.map(b => [
+      b.bundle_rank,
+      b.bundle_id,
+      b.products.map(p => p.product_id).join(", "),
+      b.products.map(p => p.product_name).join(" + "),
+      formatPercent(b.support),
+      formatPercent(b.confidence),
+      b.lift.toFixed(2),
+      (b.normal_bundle_retail_price ?? b.estimated_revenue).toFixed(2),
+      formatPercent(b.suggested_discount_pct ?? 0),
+      (b.promo_bundle_price ?? b.estimated_revenue).toFixed(2),
+      (b.promo_bundle_profit ?? b.estimated_profit).toFixed(2),
+      formatPercent(b.promo_profit_margin ?? 0),
+      approvedBundles.has(b.bundle_id) ? "Approved" : "Pending",
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(escapeCsvCell).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" }));
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", `bundlemind_recommendations_${periodType}_${targetDate}.csv`);
@@ -209,24 +313,14 @@ const BundlesPage = () => {
 
   const summaryItems = summary ? [
     { label: 'Recommended Bundles', value: summary.recommended_bundles.toLocaleString(), badge: 'Total', badgeColor: 'var(--accent-indigo)', badgeBg: 'rgba(99,102,241,0.12)', badgeBorder: 'rgba(99,102,241,0.25)' },
-    { label: 'Average Lift', value: `${summary.average_lift.toFixed(2)}×`, badge: 'Lift', badgeColor: 'var(--accent-cyan-text)', badgeBg: 'rgba(6,182,212,0.12)', badgeBorder: 'rgba(6,182,212,0.25)', numColor: 'var(--accent-cyan-text)' },
+    { label: 'Average Lift', value: `${summary.average_lift.toFixed(2)}x`, badge: 'Lift', badgeColor: 'var(--accent-cyan-text)', badgeBg: 'rgba(6,182,212,0.12)', badgeBorder: 'rgba(6,182,212,0.25)', numColor: 'var(--accent-cyan-text)' },
     { label: 'Average Confidence', value: `${Math.round(summary.average_confidence * 100)}%`, badge: 'Confidence', badgeColor: 'var(--accent-green-text)', badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.25)', numColor: 'var(--accent-green-text)' },
-    { label: 'Expected Revenue', value: formatCurrency(summary.expected_revenue !== undefined ? summary.expected_revenue : summary.average_revenue), badge: 'Revenue', badgeColor: 'var(--text-body-strong)', badgeBg: 'var(--tag-bg)', badgeBorder: 'var(--tag-border)' },
-    { label: 'Expected Profit', value: formatCurrency(summary.expected_profit !== undefined ? summary.expected_profit : summary.average_profit), badge: 'Profit', badgeColor: 'var(--accent-green-text)', badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.25)', numColor: 'var(--accent-green-text)' },
+    { label: 'Promo Revenue', value: formatCurrency(summary.expected_revenue !== undefined ? summary.expected_revenue : summary.average_revenue), badge: 'Revenue', badgeColor: 'var(--text-body-strong)', badgeBg: 'var(--tag-bg)', badgeBorder: 'var(--tag-border)' },
+    { label: 'Promo Profit', value: formatCurrency(summary.expected_profit !== undefined ? summary.expected_profit : summary.average_profit), badge: 'Profit', badgeColor: 'var(--accent-green-text)', badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.25)', numColor: 'var(--accent-green-text)' },
   ] : [];
 
   return (
     <div className="space-y-6 flex-1 flex flex-col animate-fade-in">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Bundle Recommendations
-        </h1>
-        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-          AI-assisted product bundles based on purchasing relationships, seasonal demand and product movement.
-        </p>
-      </div>
-
       {/* Control Panel Toolbar */}
       <div className="rounded-2xl p-6 flex flex-col gap-4" style={card}>
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -237,7 +331,7 @@ const BundlesPage = () => {
                 <button
                   key={mode}
                   type="button"
-                  onClick={() => updateParams({ period_type: mode })}
+                  onClick={() => handlePeriodTypeChange(mode)}
                   className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize"
                   style={periodType === mode
                     ? { background: 'linear-gradient(135deg, rgba(16,185,129,0.22), rgba(6,182,212,0.14))', color: 'var(--accent-green-text)', border: '1px solid rgba(16,185,129,0.25)' }
@@ -248,16 +342,45 @@ const BundlesPage = () => {
               ))}
             </div>
 
-            <input
-              type="date"
-              className="input-dark text-xs"
-              style={{ width: '150px' }}
-              value={targetDate}
-              onChange={(e) => updateParams({ target_date: e.target.value })}
-            />
+            {periodType === "day" ? (
+              <input
+                type="date"
+                className="input-dark text-xs"
+                style={{ width: '150px' }}
+                value={targetDate}
+                onChange={(e) => updateParams({ target_date: e.target.value })}
+              />
+            ) : (
+              <>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    Start Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark text-xs"
+                    style={{ width: '150px' }}
+                    value={startDateParam}
+                    onChange={(e) => handleRangeStartChange(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    End Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark text-xs"
+                    style={{ width: '150px' }}
+                    value={endDateParam}
+                    onChange={(e) => handleRangeEndChange(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex gap-1.5">
-              <button onClick={handlePrevPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Previous Period">
+              <button onClick={handlePrevPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Previous period" aria-label="Previous period">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -265,7 +388,7 @@ const BundlesPage = () => {
               <button onClick={handleToday} className="theme-toggle font-bold text-xs px-3 hover:scale-105 active:scale-95">
                 Today
               </button>
-              <button onClick={handleNextPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Next Period">
+              <button onClick={handleNextPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Next period" aria-label="Next period">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
                 </svg>
@@ -329,12 +452,12 @@ const BundlesPage = () => {
             />
 
             <div className="flex gap-1.5 ml-auto xl:ml-0">
-              <button onClick={handleClearFilters} className="theme-toggle text-xs px-3 font-bold hover:bg-[rgba(239,68,68,0.1)] hover:text-red-400 hover:border-red-400">
+              <button onClick={handleClearFilters} className="theme-toggle text-xs px-3 font-bold hover:bg-[rgba(239,68,68,0.1)] hover:text-red-400 hover:border-red-400" title="Clear filters">
                 Clear
               </button>
-              <button onClick={fetchPeriodAnalysis} className="theme-toggle" title="Refresh">
+              <button onClick={fetchPeriodAnalysis} className="theme-toggle" title="Refresh recommendations" aria-label="Refresh recommendations">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 4H18" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v6h6M20 20v-6h-6M5.6 15A7 7 0 0018 17.4M18.4 9A7 7 0 006 6.6" />
                 </svg>
               </button>
             </div>
@@ -358,29 +481,9 @@ const BundlesPage = () => {
         </div>
       )}
 
-      {/* Loading state skeletons */}
+      {/* Loading state */}
       {!error && loading && (
-        <div className="space-y-6 flex-1 flex flex-col">
-          {/* Skeletons for Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="glass-card p-4 h-[80px] animate-pulse bg-[var(--row-hover)]"></div>
-            ))}
-          </div>
-          {/* Skeletons for Bundle Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="glass-card p-6 flex flex-col justify-between space-y-4 animate-pulse bg-[var(--row-hover)]">
-                <div className="space-y-3">
-                  <div className="h-4 bg-[rgba(255,255,255,0.05)] rounded w-1/3"></div>
-                  <div className="h-8 bg-[rgba(255,255,255,0.05)] rounded w-1/2"></div>
-                  <div className="h-24 bg-[rgba(255,255,255,0.05)] rounded"></div>
-                </div>
-                <div className="h-10 bg-[rgba(255,255,255,0.05)] rounded w-full"></div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <LoadingSpinner label="Loading bundle recommendations..." fullPage />
       )}
 
       {/* Main recommendation display */}
@@ -412,7 +515,6 @@ const BundlesPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {bundles.map(bundle => {
                 const isApproved = approvedBundles.has(bundle.bundle_id);
-                const hasFastAndSlow = bundle.fast_product_count >= 1 && bundle.slow_product_count >= 1;
                 return (
                   <div key={bundle.bundle_id} className="glass-card p-6 flex flex-col justify-between transition-all duration-300"
                     style={{
@@ -457,7 +559,6 @@ const BundlesPage = () => {
                       {/* Seasonal Score and metadata details */}
                       <div className="flex justify-between items-center text-[10px] px-1 text-[var(--text-muted)]">
                         <span>Seasonal Score: <strong className="text-indigo-300 font-extrabold">{bundle.seasonal_demand_score.toFixed(4)}</strong></span>
-                        <span>Source: <strong className="text-[var(--text-primary)] font-extrabold capitalize">{bundle.source.replace(/_/g, ' ')}</strong></span>
                       </div>
 
                       {/* Products List */}
@@ -491,29 +592,26 @@ const BundlesPage = () => {
                         </div>
                       </div>
 
-                      {/* Dynamic Insight text */}
-                      <p className="text-[11px] leading-relaxed italic" style={{ color: 'var(--text-secondary)' }}>
-                        "{bundle.insight}"
-                      </p>
-
-                      {/* Fast/Slow Indicator Badge */}
-                      {hasFastAndSlow && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[rgba(6,182,212,0.08)] text-[var(--accent-cyan-text)] border border-[rgba(6,182,212,0.18)] w-fit animate-glow-pulse">
-                          ✨ Fast + Slow Bundle
-                        </div>
-                      )}
                     </div>
 
                     <div className="mt-4 pt-4 space-y-4" style={{ borderTop: '1px solid var(--divider)' }}>
                       {/* Financial info */}
-                      <div className="flex justify-between items-center text-xs">
+                      <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
-                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Expected Revenue</p>
-                          <p className="font-extrabold mt-0.5" style={{ color: 'var(--text-primary)' }}>{formatCurrency(bundle.estimated_revenue)}</p>
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Normal Price</p>
+                          <p className="font-extrabold mt-0.5" style={{ color: 'var(--text-muted)' }}>{formatCurrency(bundle.normal_bundle_retail_price ?? bundle.estimated_revenue)}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Expected Profit</p>
-                          <p className="font-extrabold mt-0.5 text-[var(--accent-green-text)]">{formatCurrency(bundle.estimated_profit)}</p>
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Discount</p>
+                          <p className="font-extrabold mt-0.5 text-[var(--accent-cyan-text)]">{formatPercent(bundle.suggested_discount_pct ?? 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Promo Price</p>
+                          <p className="font-extrabold mt-0.5" style={{ color: 'var(--text-primary)' }}>{formatCurrency(bundle.promo_bundle_price ?? bundle.estimated_revenue)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Promo Profit</p>
+                          <p className="font-extrabold mt-0.5 text-[var(--accent-green-text)]">{formatCurrency(bundle.promo_bundle_profit ?? bundle.estimated_profit)}</p>
                         </div>
                       </div>
 
@@ -575,22 +673,6 @@ const BundlesPage = () => {
         </div>
       )}
 
-      {/* Business Explanation Panel */}
-      <div className="glass-card p-5 border-l-4 border-l-[var(--accent-green)] bg-[rgba(16,185,129,0.02)] flex gap-4 items-start">
-        <div className="text-[var(--accent-green)] mt-0.5">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <h4 className="text-xs font-extrabold uppercase tracking-wider text-[var(--accent-green-text)]">
-            Historical Seasonal Intelligence
-          </h4>
-          <p className="text-[11px] mt-1 text-[var(--text-secondary)] leading-relaxed">
-            Future bundle recommendations reuse FP-Growth product relationships and recurring seasonal patterns learned from the 2024–2025 dataset. Future years do not require retraining unless new transaction data must be included.
-          </p>
-        </div>
-      </div>
     </div>
   );
 };

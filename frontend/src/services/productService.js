@@ -29,3 +29,5 @@ export const getMovementPredictions = (params = {}) =>
     params
   });
 
+export const getMovementModelInfo = () =>
+  axios.get(`${BASE_URL}/products/movement/model-info`, { headers: authHeaders() });

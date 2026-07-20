@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ConfirmModal from "../../components/shared/ConfirmModal";
+import { BrandMark } from "../../components/shared/BrandLogo";
 import { getUsers, updateUserRole, updateUserStatus, deleteUser } from "../../services/userManagementService";
 import { getAccessRequests, approveAccessRequest, rejectAccessRequest, deleteAccessRequest } from "../../services/accessRequestService";
 import { getModelStatus } from "../../services/modelService";
+import { getMovementPredictions } from "../../services/productService";
 
 const card = {
   backgroundColor: "var(--card-bg)",
@@ -64,6 +67,12 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const getReviewerLabel = (req) => {
+  if (req.reviewed_by_name) return `by ${req.reviewed_by_name}`;
+  if (req.reviewed_by) return "by Admin";
+  return "—";
+};
+
 // ─── Profile Tab ─────────────────────────────────────────────────────────────
 const ProfileTab = ({ user }) => (
   <div className="space-y-5">
@@ -84,13 +93,6 @@ const ProfileTab = ({ user }) => (
           </div>
         ))}
       </div>
-    </div>
-    <div className="rounded-2xl p-5 flex items-start gap-3 text-[11px]"
-      style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.2)", color: "var(--text-muted)" }}>
-      <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="#a5b4fc" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span>To change your password or update profile information, contact your system administrator or use the Change Password option in your account settings.</span>
     </div>
   </div>
 );
@@ -194,7 +196,7 @@ const AccessRequestsTab = () => {
             <table className="w-full text-xs text-left border-collapse">
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--divider)" }}>
-                  {["Name", "Email", "Organization", "Requested Role", "Status", "Submitted", "Actions"].map((h) => (
+                  {["Name", "Email", "Requested Role", "Status", "Submitted", "Actions"].map((h) => (
                     <th key={h} className="px-4 pb-3 pt-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-label)" }}>{h}</th>
                   ))}
                 </tr>
@@ -204,7 +206,6 @@ const AccessRequestsTab = () => {
                   <tr key={req.id} className="transition-colors hover:bg-[var(--row-hover)]" style={{ borderBottom: "1px solid var(--divider-subtle)" }}>
                     <td className="px-4 py-3.5 font-bold" style={{ color: "var(--text-primary)" }}>{req.name}</td>
                     <td className="px-4 py-3.5" style={{ color: "var(--text-body)" }}>{req.email}</td>
-                    <td className="px-4 py-3.5" style={{ color: "var(--text-body)" }}>{req.organization || "—"}</td>
                     <td className="px-4 py-3.5"><RoleBadge role={req.requested_role} /></td>
                     <td className="px-4 py-3.5"><StatusBadge status={req.status} /></td>
                     <td className="px-4 py-3.5 whitespace-nowrap" style={{ color: "var(--text-body)" }}>
@@ -240,7 +241,7 @@ const AccessRequestsTab = () => {
                       ) : (
                         <div className="flex gap-2">
                           <span className="text-[10px]" style={{ color: "var(--text-very-muted)" }}>
-                            {req.reviewed_by ? `by ${req.reviewed_by}` : "—"}
+                            {getReviewerLabel(req)}
                           </span>
                           <button
                             onClick={() => handleDelete(req.id)}
@@ -490,8 +491,28 @@ const ModelInfoTab = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getModelStatus()
-      .then((res) => setStatus(res.data))
+    Promise.allSettled([
+      getModelStatus(),
+      getMovementPredictions({ period_type: "month", selected_date: "2026-01-15", page: 1, limit: 1 }),
+    ])
+      .then(([modelResult, movementResult]) => {
+        const modelStatus = modelResult.status === "fulfilled" ? modelResult.value.data : {};
+        const movementModel = movementResult.status === "fulfilled" ? movementResult.value.data?.model : null;
+        const movementStatus = movementModel
+          ? {
+              model_loaded: true,
+              predictions_loaded: true,
+              period_analysis_loaded: true,
+              training_summary_loaded: true,
+            }
+          : null;
+        setStatus({
+          ...modelStatus,
+          random_forest: movementStatus
+            ? { ...(modelStatus.random_forest || {}), ...movementStatus }
+            : modelStatus.random_forest,
+        });
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -508,7 +529,6 @@ const ModelInfoTab = () => {
           items: [
             { label: "Model Loaded", value: status.random_forest?.model_loaded ? "✓ Yes" : "✗ No", ok: status.random_forest?.model_loaded },
             { label: "Predictions CSV", value: status.random_forest?.predictions_loaded ? "✓ Loaded" : "✗ Missing", ok: status.random_forest?.predictions_loaded },
-            { label: "Feature Importance", value: status.random_forest?.feature_importance_loaded ? "✓ Loaded" : "✗ Missing", ok: status.random_forest?.feature_importance_loaded },
             { label: "Training Summary", value: status.random_forest?.training_summary_loaded ? "✓ Loaded" : "✗ Missing", ok: status.random_forest?.training_summary_loaded },
             { label: "Algorithm", value: "Random Forest Classifier" },
             { label: "Target Classes", value: "Fast Moving / Medium Moving / Slow Moving" },
@@ -587,7 +607,10 @@ const ModelInfoTab = () => {
 const SettingsPage = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  const [activeTab, setActiveTab] = useState("profile");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const initialTab = TAB_IDS.includes(requestedTab) ? requestedTab : "profile";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Enrich user with full profile from API if needed
   const [fullUser, setFullUser] = useState(null);
@@ -600,16 +623,27 @@ const SettingsPage = () => {
   const displayUser = fullUser || user;
 
   const visibleTabs = TAB_IDS.filter((id) => !ADMIN_TABS.has(id) || isAdmin);
+  const selectTab = (id) => {
+    setActiveTab(id);
+    setSearchParams({ tab: id }, { replace: true });
+  };
+
+  useEffect(() => {
+    if (!visibleTabs.includes(activeTab)) {
+      selectTab("profile");
+      return;
+    }
+    if (requestedTab !== activeTab) {
+      setSearchParams({ tab: activeTab }, { replace: true });
+    }
+  }, [activeTab, requestedTab, visibleTabs, setSearchParams]);
 
   return (
     <div className="space-y-6 flex-1 flex flex-col">
       {/* Header */}
       <div className="rounded-2xl p-6" style={card}>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white"
-            style={{ background: "linear-gradient(135deg, var(--accent-green), var(--accent-cyan))", boxShadow: "0 4px 16px rgba(16,185,129,0.3)" }}>
-            {(displayUser?.full_name || displayUser?.email || "U").charAt(0).toUpperCase()}
-          </div>
+          <BrandMark size="lg" />
           <div>
             <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{displayUser?.full_name || displayUser?.email || "User"}</h2>
             <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>{displayUser?.email}</p>
@@ -629,7 +663,7 @@ const SettingsPage = () => {
           return (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
+              onClick={() => selectTab(id)}
               className="flex-1 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200"
               style={isActive
                 ? { background: "linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.1))", color: "var(--accent-green-text)", border: "1px solid rgba(16,185,129,0.25)" }

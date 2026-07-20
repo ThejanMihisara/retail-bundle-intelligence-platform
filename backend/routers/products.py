@@ -40,11 +40,10 @@ router = APIRouter(prefix="/api/products/movement", tags=["product-movement"])
 
 def _get_live_predictions(db: Session) -> pd.DataFrame | None:
     """
-    Returns a predictions DataFrame.
-    Always returns the static pre-trained predictions.
+    Returns current monthly predictions from the same ProductMovementService
+    used by the detailed /predict endpoint.
     """
-    model_service.load_models()
-    return _get_pretrained_df()
+    return product_movement_service.get_predictions(date.today().isoformat(), "month")
 
 
 def _get_pretrained_df() -> pd.DataFrame:
@@ -75,6 +74,27 @@ def _get_period_analysis_df() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # Route handlers
 # ---------------------------------------------------------------------------
+
+@router.get("/model-info")
+async def get_product_movement_model_info(_: User = Depends(get_current_user)):
+    try:
+        product_movement_service.check_ready()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Product movement model is not available: {exc}") from exc
+
+    bundle = product_movement_service.bundle or {}
+    return {
+        "model_loaded": product_movement_service.bundle is not None,
+        "predictions_loaded": product_movement_service.bundle is not None,
+        "period_analysis_loaded": bool(bundle.get("supported_period_types")),
+        "training_summary_loaded": bool(bundle.get("test_metrics")),
+        "model_name": "Random Forest",
+        "model_version": bundle.get("model_version"),
+        "training_start_date": bundle.get("training_start_date"),
+        "training_end_date": bundle.get("training_end_date"),
+    }
 
 def _format_row(row: pd.Series) -> dict:
     return {
@@ -311,6 +331,14 @@ def get_period_dates_and_label(selected_date: date, period_type: str):
     return period_start, period_end, period_label
 
 
+def get_custom_period_label(period_start: date, period_end: date, period_type: str):
+    if period_start == period_end:
+        return f"{period_start.day} {period_start.strftime('%B %Y')}"
+    if period_type == "month":
+        return f"{period_start.strftime('%d %B %Y')} to {period_end.strftime('%d %B %Y')}"
+    return f"{period_start.day} {period_start.strftime('%B %Y')} to {period_end.day} {period_end.strftime('%B %Y')}"
+
+
 def format_prediction_row(row, period_end):
     return {
         "product_id": str(row["product_id"]),
@@ -346,6 +374,8 @@ def format_prediction_row(row, period_end):
 async def predict_movement(
     period_type: str = Query("month", pattern="^(day|week|month)$"),
     selected_date: str = Query("2026-01-15"),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     movement_level: Optional[str] = "all",
     category: Optional[str] = None,
     search: Optional[str] = None,
@@ -361,8 +391,25 @@ async def predict_movement(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Expected YYYY-MM-DD.")
 
-    df_raw = product_movement_service.get_predictions(selected_date, period_type)
     period_start, period_end, period_label = get_period_dates_and_label(dt, period_type)
+
+    if start_date or end_date:
+        if period_type == "day":
+            raise HTTPException(status_code=400, detail="Date range is only supported for weekly and monthly predictions.")
+        if not start_date or not end_date:
+            raise HTTPException(status_code=400, detail="Both start_date and end_date are required for a date range.")
+        try:
+            custom_start = datetime.strptime(start_date, "%Y-%m-%d").date()
+            custom_end = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date range format. Expected YYYY-MM-DD.")
+        if custom_start > custom_end:
+            raise HTTPException(status_code=400, detail="start_date must be on or before end_date.")
+        period_start = custom_start
+        period_end = custom_end
+        period_label = get_custom_period_label(period_start, period_end, period_type)
+
+    df_raw = product_movement_service.get_predictions(selected_date, period_type)
     
     df = df_raw.copy()
     
@@ -430,7 +477,7 @@ async def predict_movement(
         df_unknown = pd.DataFrame(unknown_rows)
         df = pd.concat([df, df_unknown], ignore_index=True)
         
-    df["period_start"] = pd.to_datetime(df["period_start"]).dt.date
+    df["period_start"] = period_start
 
     df_filtered = df.copy()
     if category and category.lower() != "all" and category.lower() != "all categories":
@@ -584,6 +631,8 @@ async def predict_movement(
         "filters": {
             "period_type": period_type,
             "selected_date": selected_date,
+            "start_date": start_date,
+            "end_date": end_date,
             "period_start": period_start,
             "period_end": period_end,
             "period_label": period_label,

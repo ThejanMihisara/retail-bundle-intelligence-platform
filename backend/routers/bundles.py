@@ -4,7 +4,7 @@ from models.user import User
 from services.model_service import model_service
 from utils.dependencies import get_current_user
 import pandas as pd
-from typing import Optional, List
+from typing import Any, Optional, List
 from schemas.bundle import BundlePeriodAnalysisResponse
 from services.product_movement_service import product_movement_service
 import logging
@@ -12,6 +12,51 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/bundles", tags=["bundle-recommendations"])
+
+_PERIOD_ANALYSIS_CACHE: dict[tuple[Any, ...], dict[str, Any]] = {}
+_PERIOD_ANALYSIS_CACHE_LIMIT = 128
+_LOOKUP_CACHE: dict[str, Any] = {"key": None, "value": None}
+
+
+def _remember_period_response(cache_key: tuple[Any, ...], response: dict[str, Any]) -> dict[str, Any]:
+    if len(_PERIOD_ANALYSIS_CACHE) >= _PERIOD_ANALYSIS_CACHE_LIMIT:
+        _PERIOD_ANALYSIS_CACHE.pop(next(iter(_PERIOD_ANALYSIS_CACHE)))
+    _PERIOD_ANALYSIS_CACHE[cache_key] = response
+    return response
+
+
+def _get_bundle_lookup_maps():
+    product_profile = model_service.fp_product_profile
+    recommendations = model_service.fp_recommendations
+    cache_key = (id(product_profile), id(recommendations))
+    if _LOOKUP_CACHE["key"] == cache_key and _LOOKUP_CACHE["value"] is not None:
+        return _LOOKUP_CACHE["value"]
+
+    price_lookup = {}
+    product_lookup = {}
+    fallback_movement_lookup = {}
+    bundle_recs_lookup = {}
+
+    if product_profile is not None:
+        for row in product_profile.to_dict("records"):
+            pid = str(row["product_id"])
+            price_lookup[pid] = float(row.get("average_retail_price", 0.0))
+            product_lookup[pid] = {
+                "product_id": pid,
+                "product_name": str(row.get("product_name", "")),
+                "category": str(row.get("category", "General Grocery")),
+            }
+            lbl = row.get("movement_label", "Fast")
+            fallback_movement_lookup[pid] = str(lbl) if "moving" in str(lbl).lower() else f"{lbl} Moving"
+
+    if recommendations is not None:
+        for row in recommendations.to_dict("records"):
+            bundle_recs_lookup[int(row["bundle_id"])] = row
+
+    value = (price_lookup, product_lookup, fallback_movement_lookup, bundle_recs_lookup)
+    _LOOKUP_CACHE["key"] = cache_key
+    _LOOKUP_CACHE["value"] = value
+    return value
 
 def get_recommendations_df():
     model_service.load_models()
@@ -97,6 +142,27 @@ def format_period_bundle_row(row):
         "profit_share": float(row.get("profit_share", 0.0)),
         "growth_pct": float(row.get("growth_pct", 0.0)),
         "insight": str(row.get("insight", "")),
+    }
+
+
+def promotion_fields(row):
+    estimated_revenue = make_json_safe(row.get("estimated_bundle_retail_price", 0.0))
+    estimated_profit = make_json_safe(row.get("estimated_bundle_profit", 0.0))
+    normal_price = make_json_safe(row.get("normal_bundle_retail_price", estimated_revenue))
+    normal_profit = make_json_safe(row.get("normal_bundle_profit", estimated_profit))
+    promo_price = make_json_safe(row.get("promo_bundle_price", estimated_revenue))
+    promo_profit = make_json_safe(row.get("promo_bundle_profit", estimated_profit))
+
+    return {
+        "normal_bundle_retail_price": normal_price,
+        "estimated_bundle_cost": make_json_safe(row.get("estimated_bundle_cost", max(normal_price - normal_profit, 0.0))),
+        "normal_bundle_profit": normal_profit,
+        "suggested_discount_pct": make_json_safe(row.get("suggested_discount_pct", 0.0)),
+        "promo_bundle_price": promo_price,
+        "promo_bundle_profit": promo_profit,
+        "promo_profit_margin": make_json_safe(row.get("promo_profit_margin", (promo_profit / promo_price) if promo_price else 0.0)),
+        "estimated_revenue": estimated_revenue,
+        "estimated_profit": estimated_profit,
     }
 
 @router.get("")
@@ -280,6 +346,8 @@ def make_json_safe(v, default=0.0):
 async def get_period_bundle_analysis(
     period_type: str = Query("day", pattern="^(day|week|month)$"),
     target_date: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     page: int = 1,
     limit: int = 12,
     search: Optional[str] = None,
@@ -317,11 +385,48 @@ async def get_period_bundle_analysis(
         period_end = end_of_month.strftime("%Y-%m-%d")
         period_label = target_dt.strftime("%B %Y")
 
+    if start_date or end_date:
+        if period_type.lower() == "day":
+            raise HTTPException(status_code=400, detail="Date range is only supported for weekly and monthly bundle recommendations.")
+        if not start_date or not end_date:
+            raise HTTPException(status_code=400, detail="Both start_date and end_date are required for a date range.")
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid date range format. Expected YYYY-MM-DD.")
+        if start_dt > end_dt:
+            raise HTTPException(status_code=400, detail="start_date must be on or before end_date.")
+        period_start = start_date
+        period_end = end_date
+        period_label = f"{start_dt.day} {start_dt.strftime('%b')} {start_dt.year} - {end_dt.day} {end_dt.strftime('%b')} {end_dt.year}"
+
     # Load model and fallbacks
     model_service.load_models()
     
     if model_service.fp_recommendations is None:
         raise HTTPException(status_code=503, detail="Bundle recommendations data is missing or corrupted.")
+
+    cache_key = (
+        "period-analysis",
+        id(model_service.fp_recommendations),
+        id(model_service.fp_period_recommendations),
+        getattr(product_movement_service, "model_mtime", None),
+        period_type.lower(),
+        target_date,
+        period_start,
+        period_end,
+        page,
+        limit,
+        search or "",
+        category or "",
+        movement or "",
+        min_lift,
+        min_confidence,
+    )
+    cached_response = _PERIOD_ANALYSIS_CACHE.get(cache_key)
+    if cached_response is not None:
+        return cached_response
 
     df_csv = model_service.fp_period_recommendations
     csv_match = pd.DataFrame()
@@ -332,10 +437,8 @@ async def get_period_bundle_analysis(
         ]
 
     # Build necessary lookups
-    product_profile = model_service.fp_product_profile
     movement_lookup = {}
-    price_lookup = {}
-    product_lookup = {}
+    price_lookup, product_lookup, fallback_movement_lookup, bundle_recs_lookup = _get_bundle_lookup_maps()
 
     # Query dynamic product movement classifications from ProductMovementService
     try:
@@ -344,28 +447,8 @@ async def get_period_bundle_analysis(
     except Exception as e:
         logger.error(f"Failed to load dynamic RF predictions for bundles: {e}")
         movement_lookup = {}
-
-    if product_profile is not None:
-        for _, row in product_profile.iterrows():
-            pid = str(row["product_id"])
-            price_lookup[pid] = float(row.get("average_retail_price", 0.0))
-            product_lookup[pid] = {
-                "product_id": pid,
-                "product_name": str(row.get("product_name", "")),
-                "category": str(row.get("category", "General Grocery"))
-            }
-            if pid not in movement_lookup:
-                lbl = row.get("movement_label", "Fast")
-                if "moving" not in str(lbl).lower():
-                    movement_lookup[pid] = f"{lbl} Moving"
-                else:
-                    movement_lookup[pid] = str(lbl)
-
-    # Build static bundle recommendations lookup
-    bundle_recs_lookup = {}
-    if model_service.fp_recommendations is not None:
-        for _, row in model_service.fp_recommendations.iterrows():
-            bundle_recs_lookup[int(row["bundle_id"])] = row
+    if fallback_movement_lookup:
+        movement_lookup = {**fallback_movement_lookup, **movement_lookup}
 
     results_list = []
 
@@ -423,8 +506,7 @@ async def get_period_bundle_analysis(
                 "test_attachment_rate": make_json_safe(row.get("test_attachment_rate", 0.0)),
                 "seasonal_demand_score": make_json_safe(row.get("seasonal_demand_score", 0.0)),
                 "score": make_json_safe(row.get("period_bundle_score", 0.0)),
-                "estimated_revenue": make_json_safe(row.get("estimated_bundle_retail_price", 0.0)),
-                "estimated_profit": make_json_safe(row.get("estimated_bundle_profit", 0.0)),
+                **promotion_fields(row),
                 "insight": str(row.get("insight", "")),
                 "source": str(row.get("source", "fp_growth_seasonal"))
             })
@@ -544,8 +626,7 @@ async def get_period_bundle_analysis(
                 "test_attachment_rate": make_json_safe(row.get("test_attachment_rate", 0.0)),
                 "seasonal_demand_score": make_json_safe(sds_final),
                 "score": make_json_safe(score),
-                "estimated_revenue": make_json_safe(row.get("estimated_bundle_retail_price", 0.0)),
-                "estimated_profit": make_json_safe(row.get("estimated_bundle_profit", 0.0)),
+                **promotion_fields(row),
                 "insight": insight,
                 "source": "fp_growth_seasonal"
             })
@@ -580,19 +661,23 @@ async def get_period_bundle_analysis(
     avg_conf = 0.0
     avg_rev = 0.0
     avg_prof = 0.0
+    total_rev = 0.0
+    total_prof = 0.0
     
     if total_records > 0:
         avg_lift = sum(x["lift"] for x in results_list) / total_records
         avg_conf = sum(x["confidence"] for x in results_list) / total_records
-        avg_rev = sum(x["estimated_revenue"] for x in results_list) / total_records
-        avg_prof = sum(x["estimated_profit"] for x in results_list) / total_records
+        total_rev = sum(x["estimated_revenue"] for x in results_list)
+        total_prof = sum(x["estimated_profit"] for x in results_list)
+        avg_rev = total_rev / total_records
+        avg_prof = total_prof / total_records
 
     period_summary = {
         "recommended_bundles": total_records,
         "average_lift": make_json_safe(round(avg_lift, 2), 0.0),
         "average_confidence": make_json_safe(round(avg_conf, 4), 0.0),
-        "expected_revenue": make_json_safe(round(avg_rev, 2), 0.0),
-        "expected_profit": make_json_safe(round(avg_prof, 2), 0.0),
+        "expected_revenue": make_json_safe(round(total_rev, 2), 0.0),
+        "expected_profit": make_json_safe(round(total_prof, 2), 0.0),
         "average_revenue": make_json_safe(round(avg_rev, 2), 0.0),
         "average_profit": make_json_safe(round(avg_prof, 2), 0.0)
     }
@@ -610,7 +695,7 @@ async def get_period_bundle_analysis(
         periods.append(period_label)
     periods.sort()
 
-    return {
+    response = {
         "selected_date": target_date,
         "period_type": period_type,
         "period_start": period_start,
@@ -623,6 +708,7 @@ async def get_period_bundle_analysis(
         "summary": period_summary,
         "data": paginated_results
     }
+    return _remember_period_response(cache_key, response)
 
 @router.get("/{bundle_id}")
 async def get_bundle_by_id(bundle_id: int, _: User = Depends(get_current_user)):

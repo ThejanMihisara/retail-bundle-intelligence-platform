@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import BrandLogo from "../shared/BrandLogo";
 
 const navItems = [
   {
@@ -88,20 +89,7 @@ const Sidebar = () => {
       <div className="flex flex-col h-full">
         {/* Brand */}
         <div className="px-6 pt-7 pb-6">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, var(--accent-green), var(--accent-cyan))', boxShadow: '0 0 16px rgba(16,185,129,0.35)' }}
-            >
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-[15px] font-extrabold tracking-tight text-gradient-brand">BundleMind</h1>
-              <p className="text-[9px] uppercase tracking-widest font-bold" style={{ color: 'var(--accent-green)' }}>Retail Intelligence</p>
-            </div>
-          </div>
+          <BrandLogo size="sm" />
         </div>
 
         {/* Divider */}

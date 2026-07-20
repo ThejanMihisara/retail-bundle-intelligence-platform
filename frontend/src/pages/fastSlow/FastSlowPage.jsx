@@ -20,6 +20,18 @@ const COLORS = {
   "Slow Moving": "#fbbf24"
 };
 
+const DEFAULT_FILTERS = {
+  periodType: "day",
+  selectedDate: "2026-01-15",
+  rangeStartDate: "2026-01-01",
+  rangeEndDate: "2026-01-31",
+  category: "all",
+  activeTab: "all",
+  search: "",
+  sortBy: "expected_revenue",
+  sortDesc: true,
+};
+
 const FastSlowPage = () => {
   const [products, setProducts] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -28,17 +40,19 @@ const FastSlowPage = () => {
   const [errorState, setErrorState] = useState(null);
 
   // Bottom table state
-  const [activeTab, setActiveTab] = useState("all");
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("expected_revenue");
-  const [sortDesc, setSortDesc] = useState(true);
+  const [activeTab, setActiveTab] = useState(DEFAULT_FILTERS.activeTab);
+  const [search, setSearch] = useState(DEFAULT_FILTERS.search);
+  const [sortBy, setSortBy] = useState(DEFAULT_FILTERS.sortBy);
+  const [sortDesc, setSortDesc] = useState(DEFAULT_FILTERS.sortDesc);
   const [page, setPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
 
   // Prediction control card state
-  const [periodType, setPeriodType] = useState("month");
-  const [selectedDate, setSelectedDate] = useState("2026-01-15");
-  const [category, setCategory] = useState("all");
+  const [periodType, setPeriodType] = useState(DEFAULT_FILTERS.periodType);
+  const [selectedDate, setSelectedDate] = useState(DEFAULT_FILTERS.selectedDate);
+  const [rangeStartDate, setRangeStartDate] = useState(DEFAULT_FILTERS.rangeStartDate);
+  const [rangeEndDate, setRangeEndDate] = useState(DEFAULT_FILTERS.rangeEndDate);
+  const [category, setCategory] = useState(DEFAULT_FILTERS.category);
   const [categories, setCategories] = useState([]);
 
   // Insights, distribution, and top lists state
@@ -48,30 +62,44 @@ const FastSlowPage = () => {
   const [insights, setInsights] = useState([]);
   const [modelInfo, setModelInfo] = useState(null);
 
-  const fetchMovementPredictionsData = (resetPage = false) => {
+  const fetchMovementPredictionsData = (resetPage = false, overrides = {}) => {
     setSubmitting(true);
     setErrorState(null);
 
     const targetPage = resetPage ? 1 : page;
+    const nextPeriodType = overrides.periodType ?? periodType;
+    const nextSelectedDate = overrides.selectedDate ?? selectedDate;
+    const nextRangeStartDate = overrides.rangeStartDate ?? rangeStartDate;
+    const nextRangeEndDate = overrides.rangeEndDate ?? rangeEndDate;
+    const nextCategory = overrides.category ?? category;
+    const nextActiveTab = overrides.activeTab ?? activeTab;
+    const nextSearch = overrides.search ?? search;
+    const nextSortBy = overrides.sortBy ?? sortBy;
+    const nextSortDesc = overrides.sortDesc ?? sortDesc;
+
     if (resetPage) {
       setPage(1);
     }
 
     let levelParam = null;
-    if (activeTab === "fast")   levelParam = "Fast Moving";
-    if (activeTab === "medium") levelParam = "Medium Moving";
-    if (activeTab === "slow")   levelParam = "Slow Moving";
+    if (nextActiveTab === "fast")   levelParam = "Fast Moving";
+    if (nextActiveTab === "medium") levelParam = "Medium Moving";
+    if (nextActiveTab === "slow")   levelParam = "Slow Moving";
 
     const params = {
-      period_type: periodType,
-      selected_date: selectedDate,
+      period_type: nextPeriodType,
+      selected_date: nextPeriodType === "day" ? nextSelectedDate : nextRangeEndDate,
       page: targetPage,
       limit: 15,
-      sort_by: sortBy,
-      sort_desc: sortDesc,
-      ...(search && { search }),
+      sort_by: nextSortBy,
+      sort_desc: nextSortDesc,
+      ...(nextPeriodType !== "day" && {
+        start_date: nextRangeStartDate,
+        end_date: nextRangeEndDate,
+      }),
+      ...(nextSearch && { search: nextSearch }),
       ...(levelParam && { movement_level: levelParam }),
-      ...(category && category !== "all" && { category })
+      ...(nextCategory && nextCategory !== "all" && { category: nextCategory })
     };
 
     getMovementPredictions(params)
@@ -125,7 +153,70 @@ const FastSlowPage = () => {
 
   const handlePredictSubmit = (e) => {
     e.preventDefault();
+    if (periodType !== "day") {
+      if (!rangeStartDate || !rangeEndDate) {
+        toast.error("Please select both start and end dates.");
+        return;
+      }
+      if (rangeStartDate > rangeEndDate) {
+        toast.error("Start date must be before or equal to end date.");
+        return;
+      }
+    }
     fetchMovementPredictionsData(true);
+  };
+
+  const handleResetFilters = () => {
+    setPeriodType(DEFAULT_FILTERS.periodType);
+    setSelectedDate(DEFAULT_FILTERS.selectedDate);
+    setRangeStartDate(DEFAULT_FILTERS.rangeStartDate);
+    setRangeEndDate(DEFAULT_FILTERS.rangeEndDate);
+    setCategory(DEFAULT_FILTERS.category);
+    setActiveTab(DEFAULT_FILTERS.activeTab);
+    setSearch(DEFAULT_FILTERS.search);
+    setSortBy(DEFAULT_FILTERS.sortBy);
+    setSortDesc(DEFAULT_FILTERS.sortDesc);
+    setPage(1);
+    fetchMovementPredictionsData(true, DEFAULT_FILTERS);
+  };
+
+  const getWeekRange = (dateStr) => {
+    const base = new Date(`${dateStr}T00:00:00`);
+    const offset = (base.getDay() + 6) % 7;
+    const start = new Date(base);
+    start.setDate(base.getDate() - offset);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return [toDateInputValue(start), toDateInputValue(end)];
+  };
+
+  const getMonthRange = (dateStr) => {
+    const base = new Date(`${dateStr}T00:00:00`);
+    const start = new Date(base.getFullYear(), base.getMonth(), 1);
+    const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+    return [toDateInputValue(start), toDateInputValue(end)];
+  };
+
+  const toDateInputValue = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const handlePeriodTypeChange = (nextPeriodType) => {
+    setPeriodType(nextPeriodType);
+    if (nextPeriodType === "week") {
+      const [start, end] = getWeekRange(selectedDate);
+      setRangeStartDate(start);
+      setRangeEndDate(end);
+      return;
+    }
+    if (nextPeriodType === "month") {
+      const [start, end] = getMonthRange(selectedDate);
+      setRangeStartDate(start);
+      setRangeEndDate(end);
+    }
   };
 
   const handleSearchSubmit = (e) => {
@@ -208,7 +299,7 @@ const FastSlowPage = () => {
                 <button
                   key={mode.id}
                   type="button"
-                  onClick={() => setPeriodType(mode.id)}
+                  onClick={() => handlePeriodTypeChange(mode.id)}
                   className="px-4 py-2 rounded-lg text-xs font-bold transition-all"
                   style={periodType === mode.id
                     ? { background: 'linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.1))', color: 'var(--accent-green-text)', border: '1px solid rgba(16,185,129,0.25)' }
@@ -220,16 +311,50 @@ const FastSlowPage = () => {
             </div>
 
             {/* Date Picker */}
-            <div className="flex flex-col">
-              <input
-                type="date"
-                className="input-dark"
-                style={{ width: '160px' }}
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                required
-              />
-            </div>
+            {periodType === "day" ? (
+              <div className="flex flex-col">
+                <input
+                  type="date"
+                  className="input-dark"
+                  style={{ width: '160px' }}
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  required
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    Start Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark"
+                    style={{ width: '160px' }}
+                    value={rangeStartDate}
+                    onChange={(e) => setRangeStartDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    End Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark"
+                    style={{ width: '160px' }}
+                    value={rangeEndDate}
+                    onChange={(e) => {
+                      setRangeEndDate(e.target.value);
+                      if (e.target.value) setSelectedDate(e.target.value);
+                    }}
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             {/* Category Select */}
             <select
@@ -268,6 +393,22 @@ const FastSlowPage = () => {
               style={{ height: '38px', minWidth: '150px' }}
             >
               {submitting ? 'Running...' : 'Predict Movement'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex items-center justify-center gap-2 rounded-xl px-5 text-xs font-bold transition-all active:scale-95"
+              disabled={submitting}
+              style={{
+                height: '38px',
+                minWidth: '100px',
+                background: 'rgba(239,68,68,0.08)',
+                color: '#f87171',
+                border: '1px solid rgba(239,68,68,0.25)'
+              }}
+            >
+              Reset
             </button>
           </form>
         </div>

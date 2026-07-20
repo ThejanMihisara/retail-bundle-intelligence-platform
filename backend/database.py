@@ -73,6 +73,18 @@ def initialize_database() -> None:
                 "MODIFY COLUMN status ENUM('pending','approved','rejected','invited','active','suspended') "
                 "NOT NULL DEFAULT 'pending'"
             ))
+            for column_name in ("organization", "department"):
+                column_exists = connection.execute(
+                    text(
+                        "SELECT COUNT(*) FROM information_schema.columns "
+                        "WHERE table_schema = DATABASE() "
+                        "AND table_name = 'access_requests' "
+                        "AND column_name = :column_name"
+                    ),
+                    {"column_name": column_name},
+                ).scalar()
+                if column_exists:
+                    connection.execute(text(f"ALTER TABLE access_requests DROP COLUMN {column_name}"))
 
         # Auto-migration: add upload_batch column to sales_transactions if missing
         try:

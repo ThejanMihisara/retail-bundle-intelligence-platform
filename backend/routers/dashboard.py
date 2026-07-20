@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -5,11 +7,13 @@ from database import get_db
 from models.user import User
 from models.transaction import SalesTransaction
 from services.model_service import model_service
+from services.product_movement_service import product_movement_service
 from utils.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 DASHBOARD_CACHE = {}
+logger = logging.getLogger(__name__)
 
 
 def clear_dashboard_cache():
@@ -19,6 +23,20 @@ def clear_dashboard_cache():
 
 def _db_has_data(db: Session) -> bool:
     return (db.query(func.count(SalesTransaction.id)).scalar() or 0) > 0
+
+
+def _get_monthly_movement_counts() -> tuple[int, int, int]:
+    try:
+        df_rf = product_movement_service.get_predictions("2026-01-15", "month")
+        level_counts = df_rf["predicted_movement_level"].value_counts()
+        return (
+            int(level_counts.get("Fast Moving", 0)),
+            int(level_counts.get("Medium Moving", 0)),
+            int(level_counts.get("Slow Moving", 0)),
+        )
+    except Exception as exc:
+        logger.error("Could not load product movement counts for dashboard: %s", exc)
+        return 0, 0, 0
 
 
 @router.get("/overview")
@@ -60,17 +78,10 @@ async def get_overview(db: Session = Depends(get_db), _: User = Depends(get_curr
         total_products = 0
 
     # --- Movement counts ---
-    # When DB has data: use live RF predictions if available, else pre-trained CSV
+    # Use the same ProductMovementService predictor as the Product Movement page.
     fast_count = medium_count = slow_count = 0
     if total_products > 0:
-        # Check if live_rf_predictions have been computed (set by products router)
-        live_rf = getattr(model_service, "live_rf_predictions", None)
-        df_rf = live_rf if live_rf is not None else model_service.rf_predictions
-        if df_rf is not None:
-            level_counts = df_rf["predicted_movement_level"].value_counts()
-            fast_count = int(level_counts.get("Fast Moving", 0))
-            medium_count = int(level_counts.get("Medium Moving", 0))
-            slow_count = int(level_counts.get("Slow Moving", 0))
+        fast_count, medium_count, slow_count = _get_monthly_movement_counts()
 
     # --- Bundle count from FP-Growth (always pre-trained, no need for live recompute) ---
     total_bundles = 0

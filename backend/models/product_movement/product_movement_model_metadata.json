@@ -1,0 +1,69 @@
+{
+  "model_version": "bundlemind_product_movement_rf_v1",
+  "model_family": "RandomForestClassifier",
+  "selected_model_name": "rf_regularized_450",
+  "source_rows": 200000,
+  "unique_products": 2190,
+  "training_product_period_rows": 424357,
+  "train_ratio": 0.8,
+  "split_date": "2025-08-07",
+  "supported_filters": [
+    "day",
+    "week",
+    "month"
+  ],
+  "labels": [
+    "Fast Moving",
+    "Medium Moving",
+    "Slow Moving"
+  ],
+  "candidate_metrics": [
+    {
+      "model": "rf_regularized_450",
+      "accuracy": 0.6680623875224955,
+      "balanced_accuracy": 0.6218677910645499,
+      "macro_f1": 0.6119077910602514,
+      "weighted_f1": 0.6703052391155878
+    },
+    {
+      "model": "rf_balanced_300",
+      "accuracy": 0.665242951409718,
+      "balanced_accuracy": 0.624327811170741,
+      "macro_f1": 0.6118948436283632,
+      "weighted_f1": 0.6691768625951177
+    },
+    {
+      "model": "rf_balanced_500",
+      "accuracy": 0.6639352129574085,
+      "balanced_accuracy": 0.609241204211892,
+      "macro_f1": 0.6025285987564896,
+      "weighted_f1": 0.6635821202561988
+    }
+  ],
+  "period_type_metrics": [
+    {
+      "period_type": "day",
+      "rows": 48999,
+      "accuracy": 0.6214820710626747,
+      "balanced_accuracy": 0.5624625201129949,
+      "macro_f1": 0.5542992759264943,
+      "weighted_f1": 0.622356310122204
+    },
+    {
+      "period_type": "week",
+      "rows": 24686,
+      "accuracy": 0.6728104998784736,
+      "balanced_accuracy": 0.6450250173237054,
+      "macro_f1": 0.6328422428279318,
+      "weighted_f1": 0.6776861911745893
+    },
+    {
+      "period_type": "month",
+      "rows": 9665,
+      "accuracy": 0.8920848422141748,
+      "balanced_accuracy": 0.8865398958459779,
+      "macro_f1": 0.8748049529029275,
+      "weighted_f1": 0.8934589135722063
+    }
+  ]
+}

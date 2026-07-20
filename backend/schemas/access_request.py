@@ -6,8 +6,6 @@ from pydantic import BaseModel, EmailStr
 class AccessRequestCreate(BaseModel):
     name: str
     email: EmailStr
-    organization: Optional[str] = None
-    department: Optional[str] = None
     requested_role: str = "analyst"
     reason: Optional[str] = None
 
@@ -16,13 +14,12 @@ class AccessRequestOut(BaseModel):
     id: int
     name: str
     email: str
-    organization: Optional[str] = None
-    department: Optional[str] = None
     requested_role: str
     reason: Optional[str] = None
     status: str
     assigned_role: Optional[str] = None
     reviewed_by: Optional[str] = None
+    reviewed_by_name: Optional[str] = None
     reviewed_at: Optional[datetime] = None
     created_at: datetime
 
