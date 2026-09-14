@@ -1,6 +1,8 @@
 import logging
+from datetime import datetime, timedelta
+from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import get_db
@@ -37,6 +39,66 @@ def _get_monthly_movement_counts() -> tuple[int, int, int]:
     except Exception as exc:
         logger.error("Could not load product movement counts for dashboard: %s", exc)
         return 0, 0, 0
+
+
+def _get_total_predicted_bundles() -> int:
+    try:
+        model_service.load_models()
+        df_bundles = model_service.fp_recommendations
+        if df_bundles is None:
+            return 0
+        return int(len(df_bundles[df_bundles["product_count"] >= 4]))
+    except Exception as exc:
+        logger.error("Could not load predicted bundle count for dashboard: %s", exc)
+        return 0
+
+
+def _get_sales_kpis(db: Session) -> dict:
+    if db:
+        stats = db.query(
+            func.sum(SalesTransaction.quantity_sold).label("total_sales"),
+            func.sum(SalesTransaction.total_revenue).label("total_revenue"),
+            func.sum(SalesTransaction.profit).label("total_profit"),
+            func.count(func.distinct(SalesTransaction.invoice_id)).label("total_invoices"),
+            func.count(func.distinct(SalesTransaction.product_id)).label("total_products"),
+        ).first()
+
+        return {
+            "total_sales": int(stats.total_sales or 0),
+            "total_revenue": round(float(stats.total_revenue or 0.0), 2),
+            "total_profit": round(float(stats.total_profit or 0.0), 2),
+            "total_invoices": int(stats.total_invoices or 0),
+            "total_products": int(stats.total_products or 0),
+        }
+
+    return {
+        "total_sales": 0,
+        "total_revenue": 0.0,
+        "total_profit": 0.0,
+        "total_invoices": 0,
+        "total_products": 0,
+    }
+
+
+@router.get("/sales-overview")
+async def get_sales_overview(db: Session = Depends(get_db), _: User = Depends(get_current_user)):
+    """
+    Returns only the uploaded-sales KPI summary needed for the first dashboard paint.
+    Model and bundle values are loaded by the client after render.
+    """
+    cache_key = "sales-overview"
+    if cache_key in DASHBOARD_CACHE:
+        return DASHBOARD_CACHE[cache_key]
+
+    result = {
+        **_get_sales_kpis(db),
+        "fast_moving_count": 0,
+        "medium_moving_count": 0,
+        "slow_moving_count": 0,
+        "total_recommended_bundles": _get_total_predicted_bundles(),
+    }
+    DASHBOARD_CACHE[cache_key] = result
+    return result
 
 
 @router.get("/overview")
@@ -124,6 +186,69 @@ async def get_monthly_sales(db: Session = Depends(get_db), _: User = Depends(get
     result = [
         {
             "month": r.month,
+            "revenue": round(float(r.revenue or 0.0), 2),
+            "profit": round(float(r.profit or 0.0), 2),
+            "quantity": int(r.quantity or 0),
+        }
+        for r in results
+    ]
+    DASHBOARD_CACHE[cache_key] = result
+    return result
+
+
+@router.get("/sales-timeseries")
+async def get_sales_timeseries(
+    granularity: str = Query("month", pattern="^(day|week|month|year)$"),
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """
+    Returns chart data grouped directly from uploaded sales_transactions rows.
+    """
+    cache_key = ("sales-timeseries", granularity, start_date or "", end_date or "")
+    if cache_key in DASHBOARD_CACHE:
+        return DASHBOARD_CACHE[cache_key]
+
+    query = db.query(SalesTransaction)
+    if start_date:
+        try:
+            query = query.filter(SalesTransaction.sale_date >= datetime.fromisoformat(start_date))
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid start_date. Use YYYY-MM-DD.")
+    if end_date:
+        try:
+            parsed_end = datetime.fromisoformat(end_date)
+            query = query.filter(SalesTransaction.sale_date < parsed_end + timedelta(days=1))
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Invalid end_date. Use YYYY-MM-DD.")
+
+    label_formats = {
+        "day": "%Y-%m-%d",
+        "week": "%x-W%v",
+        "month": "%Y-%m",
+        "year": "%Y",
+    }
+    period = func.date_format(SalesTransaction.sale_date, label_formats[granularity])
+
+    results = (
+        query.with_entities(
+            period.label("month"),
+            func.min(SalesTransaction.sale_date).label("period_start"),
+            func.sum(SalesTransaction.total_revenue).label("revenue"),
+            func.sum(SalesTransaction.profit).label("profit"),
+            func.sum(SalesTransaction.quantity_sold).label("quantity"),
+        )
+        .group_by(period)
+        .order_by(func.min(SalesTransaction.sale_date))
+        .all()
+    )
+
+    result = [
+        {
+            "month": r.month,
+            "period_start": r.period_start.isoformat() if r.period_start else None,
             "revenue": round(float(r.revenue or 0.0), 2),
             "profit": round(float(r.profit or 0.0), 2),
             "quantity": int(r.quantity or 0),

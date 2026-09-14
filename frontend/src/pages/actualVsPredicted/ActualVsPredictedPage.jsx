@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
 import StatCard from "../../components/shared/StatCard";
-import { getActualVsPredicted, getFutureForecast, getComparisonDefaults } from "../../services/forecastService";
+import { getActualVsPredicted, getComparisonDefaults } from "../../services/forecastService";
 
 const cardStyle = {
   backgroundColor: "var(--card-bg)",
@@ -152,6 +152,138 @@ const ActualVsPredictedPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportComparisonPDF = () => {
+    if (!data || !data.length) {
+      return toast.error("No comparison data available to export.");
+    }
+
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 34;
+    const lineHeight = 15;
+    const rowsPerPage = 25;
+    const columns = [
+      { title: "Period", x: 34 },
+      { title: "Predicted", x: 250 },
+      { title: "Actual", x: 330 },
+      { title: "Error", x: 405 },
+      { title: "Error %", x: 470 },
+      { title: "Result", x: 540 },
+      { title: "Coverage", x: 650 },
+    ];
+
+    const pdfText = (value) =>
+      String(value ?? "")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+
+    const fitText = (value, maxChars) => {
+      const text = String(value ?? "");
+      return text.length > maxChars ? `${text.slice(0, maxChars - 3)}...` : text;
+    };
+
+    const textLine = (x, y, text, size = 10, font = "F1") =>
+      `BT /${font} ${size} Tf ${x} ${y} Td (${pdfText(text)}) Tj ET\n`;
+
+    const exportRows = data.map((d) => ({
+      label: d.period_label || d.date,
+      predicted: d.predicted,
+      actual: d.actual,
+      error: d.error,
+      errorPercentage: d.error_percentage,
+      result: d.result,
+      actualCoverageDays: d.actual_coverage_days,
+      forecastDays: d.forecast_days,
+    }));
+    const pages = [];
+
+    for (let start = 0; start < exportRows.length; start += rowsPerPage) {
+      const pageRows = exportRows.slice(start, start + rowsPerPage);
+      let y = pageHeight - margin;
+      let stream = "";
+
+      stream += textLine(margin, y, "BundleMind Actual vs Predicted Report", 18, "F2");
+      y -= 20;
+      stream += textLine(margin, y, `${viewType} view for ${targetMetric} generated on ${new Date().toLocaleString()}`, 9);
+      y -= 26;
+      if (summary) {
+        stream += textLine(margin, y, `Actual Total: ${Number(summary.actual_total || 0).toLocaleString()}`, 10, "F2");
+        stream += textLine(230, y, `Predicted Total: ${Number(summary.matched_predicted_total || 0).toLocaleString()}`, 10, "F2");
+        stream += textLine(450, y, `Accuracy: ${summary.forecast_accuracy}%`, 10, "F2");
+        stream += textLine(620, y, `MAPE: ${summary.mape}%`, 10, "F2");
+        y -= 28;
+      }
+
+      stream += "0.9 0.95 0.93 rg\n";
+      stream += `${margin} ${y - 5} 760 20 re f\n`;
+      stream += "0 0 0 rg\n";
+      columns.forEach((column) => {
+        stream += textLine(column.x, y, column.title, 9, "F2");
+      });
+      y -= 20;
+
+      pageRows.forEach((row) => {
+        const values = [
+          fitText(row.label, 36),
+          Number(row.predicted || 0).toLocaleString(),
+          row.actual !== null ? Number(row.actual || 0).toLocaleString() : "-",
+          row.error !== null ? formatError(row.error) : "-",
+          row.errorPercentage !== null ? `${row.errorPercentage}%` : "-",
+          fitText(row.result, 18),
+          `${row.actualCoverageDays || 0}/${row.forecastDays || 0} days`,
+        ];
+        values.forEach((value, index) => {
+          stream += textLine(columns[index].x, y, value, 9);
+        });
+        y -= lineHeight;
+      });
+
+      stream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+      pages.push(stream);
+    }
+
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+    ];
+    const pageRefs = [];
+    pages.forEach((stream) => {
+      const pageObjectNumber = objects.length + 1;
+      const contentObjectNumber = pageObjectNumber + 1;
+      pageRefs.push(`${pageObjectNumber} 0 R`);
+      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`);
+      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
+    });
+    objects[1] = `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pageRefs.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object, index) => {
+      offsets.push(pdf.length);
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    });
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    const blob = new Blob([pdf], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bundlemind_actual_vs_predicted_${viewType}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const tooltipStyle = {
@@ -315,7 +447,7 @@ const ActualVsPredictedPage = () => {
                       return (
                         <div className="rounded-xl p-3.5 space-y-1.5 shadow-lg border text-xs" style={{ backgroundColor: tooltipBg, borderColor: tooltipBorder, color: "white" }}>
                           <p className="font-bold text-[#94a3b8]">Period: {label}</p>
-                          <p className="font-semibold text-emerald-400">
+                          <p className="font-semibold text-cyan-400">
                             Predicted: {item.predicted.toLocaleString()}
                             {item.is_partial_forecast_period && (
                               <span className="text-[10px] font-normal text-amber-400 ml-1">
@@ -325,7 +457,7 @@ const ActualVsPredictedPage = () => {
                           </p>
                           {hasActual ? (
                             <>
-                              <p className="font-semibold text-cyan-400">
+                              <p className="font-semibold text-emerald-400">
                                 Actual: {item.actual.toLocaleString()}
                                 {item.is_partial_actual_period && (
                                   <span className="text-[10px] font-normal text-yellow-400 ml-1">
@@ -378,15 +510,39 @@ const ActualVsPredictedPage = () => {
                 <h2 className="text-sm font-bold text-[var(--text-primary)]">Detailed Schedule & Coverage</h2>
                 <p className="text-[11px] text-[var(--text-muted)]">Comparison metrics and data completeness breakdown</p>
               </div>
-              <button
-                onClick={exportComparisonCSV}
-                className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export CSV
-              </button>
+              <details className="relative group">
+                <summary className="list-none cursor-pointer text-[11px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1.5 select-none">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export
+                  <svg className="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="absolute right-0 top-7 z-20 w-36 overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl shadow-slate-900/10">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      exportComparisonCSV();
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                  >
+                    CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      exportComparisonPDF();
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                  >
+                    PDF
+                  </button>
+                </div>
+              </details>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">

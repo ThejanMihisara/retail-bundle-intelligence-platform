@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import BrandLogo from "../shared/BrandLogo";
+import { preloadPage } from "../../routes/pageLoaders";
 
 const navItems = [
   {
@@ -101,6 +102,8 @@ const Sidebar = () => {
             <NavLink
               key={item.path}
               to={item.path}
+              onMouseEnter={() => preloadPage(item.path)}
+              onFocus={() => preloadPage(item.path)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 group border-l-2 pl-[10px] ${
                   isActive
@@ -139,6 +142,8 @@ const Sidebar = () => {
           {/* Settings */}
           <NavLink
             to="/settings"
+            onMouseEnter={() => preloadPage("/settings")}
+            onFocus={() => preloadPage("/settings")}
             className={({ isActive }) =>
               `w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 group ${
                 isActive

@@ -100,18 +100,28 @@ const ForecastPage = () => {
     toast.success("Filters reset to default.");
   };
 
+  const getExportRows = () =>
+    forecastResult.map((f) => ({
+      label: f.period_label || f.forecast_date,
+      start: f.period_start || f.forecast_date,
+      end: f.period_end || f.forecast_date,
+      predictedTransactions: f.predicted_transactions,
+      txLower: f.transaction_lower,
+      txUpper: f.transaction_upper,
+      predictedQuantity: f.predicted_quantity_sold,
+      qtyLower: f.quantity_lower,
+      qtyUpper: f.quantity_upper,
+    }));
+
   const exportForecastCSV = () => {
     if (!forecastResult || !forecastResult.length) {
       return toast.error("No forecast data available to export.");
     }
 
     const headers = "Period Label,Start Date,End Date,Predicted Transactions,Tx Lower,Tx Upper,Predicted Quantity,Qty Lower,Qty Upper\n";
-    const rows = forecastResult.map((f) => {
-      const label = f.period_label || f.forecast_date;
-      const start = f.period_start || f.forecast_date;
-      const end = f.period_end || f.forecast_date;
-      return `"${label}",${start},${end},${f.predicted_transactions},${f.transaction_lower},${f.transaction_upper},${f.predicted_quantity_sold},${f.quantity_lower},${f.quantity_upper}`;
-    }).join("\n");
+    const rows = getExportRows().map((f) =>
+      `"${String(f.label).replace(/"/g, '""')}",${f.start},${f.end},${f.predictedTransactions},${f.txLower},${f.txUpper},${f.predictedQuantity},${f.qtyLower},${f.qtyUpper}`
+    ).join("\n");
 
     const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -121,6 +131,126 @@ const ForecastPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportForecastPDF = () => {
+    if (!forecastResult || !forecastResult.length) {
+      return toast.error("No forecast data available to export.");
+    }
+
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 34;
+    const lineHeight = 15;
+    const rowsPerPage = 24;
+    const columns = [
+      { title: "Period", x: 34 },
+      { title: "Start", x: 160 },
+      { title: "End", x: 235 },
+      { title: "Pred Tx", x: 310 },
+      { title: "Tx Range", x: 390 },
+      { title: "Pred Qty", x: 505 },
+      { title: "Qty Range", x: 590 },
+    ];
+
+    const pdfText = (value) =>
+      String(value ?? "")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+
+    const fitText = (value, maxChars) => {
+      const text = String(value ?? "");
+      return text.length > maxChars ? `${text.slice(0, maxChars - 3)}...` : text;
+    };
+
+    const textLine = (x, y, text, size = 10, font = "F1") =>
+      `BT /${font} ${size} Tf ${x} ${y} Td (${pdfText(text)}) Tj ET\n`;
+
+    const exportRows = getExportRows();
+    const pages = [];
+
+    for (let start = 0; start < exportRows.length; start += rowsPerPage) {
+      const pageRows = exportRows.slice(start, start + rowsPerPage);
+      let y = pageHeight - margin;
+      let stream = "";
+
+      stream += textLine(margin, y, "BundleMind Future Forecast Report", 18, "F2");
+      y -= 20;
+      stream += textLine(margin, y, `${viewType} view report generated on ${new Date().toLocaleString()}`, 9);
+      y -= 26;
+      stream += textLine(margin, y, `Total Projected Transactions: ${totalTx.toLocaleString()}`, 11, "F2");
+      stream += textLine(300, y, `Total Projected Quantity Sold: ${totalQty.toLocaleString()}`, 11, "F2");
+      y -= 28;
+
+      stream += "0.9 0.95 0.93 rg\n";
+      stream += `${margin} ${y - 5} 760 20 re f\n`;
+      stream += "0 0 0 rg\n";
+      columns.forEach((column) => {
+        stream += textLine(column.x, y, column.title, 9, "F2");
+      });
+      y -= 20;
+
+      pageRows.forEach((row) => {
+        const values = [
+          fitText(row.label, 24),
+          row.start,
+          row.end,
+          Number(row.predictedTransactions || 0).toLocaleString(),
+          `${Number(row.txLower || 0).toLocaleString()} - ${Number(row.txUpper || 0).toLocaleString()}`,
+          Number(row.predictedQuantity || 0).toLocaleString(),
+          `${Number(row.qtyLower || 0).toLocaleString()} - ${Number(row.qtyUpper || 0).toLocaleString()}`,
+        ];
+        values.forEach((value, index) => {
+          stream += textLine(columns[index].x, y, value, 9);
+        });
+        y -= lineHeight;
+      });
+
+      stream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+      pages.push(stream);
+    }
+
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+    ];
+    const pageRefs = [];
+    pages.forEach((stream) => {
+      const pageObjectNumber = objects.length + 1;
+      const contentObjectNumber = pageObjectNumber + 1;
+      pageRefs.push(`${pageObjectNumber} 0 R`);
+      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`);
+      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
+    });
+    objects[1] = `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pageRefs.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object, index) => {
+      offsets.push(pdf.length);
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    });
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    const blob = new Blob([pdf], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bundlemind_future_forecast_${viewType}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Calculations for StatCards
@@ -368,15 +498,39 @@ const ForecastPage = () => {
                 <h2 className="text-sm font-bold text-[var(--text-primary)]">Detailed Forecast Schedule</h2>
                 <p className="text-[11px] text-[var(--text-muted)]">Granular predictions and uncertainty thresholds</p>
               </div>
-              <button
-                onClick={exportForecastCSV}
-                className="text-[11px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Export CSV
-              </button>
+              <details className="relative group">
+                <summary className="list-none cursor-pointer text-[11px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors flex items-center gap-1.5 select-none">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Export
+                  <svg className="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <div className="absolute right-0 top-7 z-20 w-36 overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl shadow-slate-900/10">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      exportForecastCSV();
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                  >
+                    CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      exportForecastPDF();
+                      e.currentTarget.closest("details")?.removeAttribute("open");
+                    }}
+                    className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                  >
+                    PDF
+                  </button>
+                </div>
+              </details>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">

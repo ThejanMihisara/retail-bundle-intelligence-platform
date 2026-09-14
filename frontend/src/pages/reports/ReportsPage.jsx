@@ -29,6 +29,7 @@ const ReportsPage = () => {
   const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [filtering, setFiltering] = useState(false);
   const { theme } = useTheme();
   const navigate = useNavigate();
 
@@ -38,16 +39,38 @@ const ReportsPage = () => {
   const labelColor    = theme === 'dark' ? '#94a3b8' : '#475569';
 
   const fetchSalesData = () => {
+    setFiltering(true);
     const params = { page, limit: 10, ...(search && { search }), ...(category && { category }), ...(startDate && { start_date: startDate }), ...(endDate && { end_date: endDate }) };
-    getSales(params).then(res => { setSales(res.data.data); setTotalRecords(res.data.total); }).catch(() => toast.error("Failed to load sales transaction data."));
-
     const allParams = { page: 1, limit: 10000, include_total: false, ...(search && { search }), ...(category && { category }), ...(startDate && { start_date: startDate }), ...(endDate && { end_date: endDate }) };
-    getSales(allParams).then(res => { setAllSalesForTopSlow(res.data.data); }).catch(() => {});
-
-    // Update filtered summary and monthly trends
     const filterParams = { ...(search && { search }), ...(category && { category }), ...(startDate && { start_date: startDate }), ...(endDate && { end_date: endDate }) };
-    getSalesSummary(filterParams).then(res => setSummary(res.data)).catch(() => {});
-    getSalesMonthly(filterParams).then(res => setMonthlyData(res.data)).catch(() => {});
+
+    Promise.allSettled([
+      getSales(params),
+      getSales(allParams),
+      getSalesSummary(filterParams),
+      getSalesMonthly(filterParams)
+    ]).then(([salesRes, allSalesRes, summaryRes, monthlyRes]) => {
+      if (salesRes.status === "fulfilled") {
+        setSales(salesRes.value.data.data);
+        setTotalRecords(salesRes.value.data.total);
+      } else {
+        toast.error("Failed to load sales transaction data.");
+      }
+
+      if (allSalesRes.status === "fulfilled") {
+        setAllSalesForTopSlow(allSalesRes.value.data.data);
+      }
+
+      if (summaryRes.status === "fulfilled") {
+        setSummary(summaryRes.value.data);
+      }
+
+      if (monthlyRes.status === "fulfilled") {
+        setMonthlyData(monthlyRes.value.data);
+      }
+    }).finally(() => {
+      setFiltering(false);
+    });
   };
 
   useEffect(() => {
@@ -172,7 +195,9 @@ const ReportsPage = () => {
             <input type="date" className="input-dark" value={endDate} onChange={(e) => { setEndDate(e.target.value); setPage(1); }} />
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="btn-primary flex-1">Search</button>
+            <button type="submit" className="btn-primary flex-1 flex items-center justify-center" disabled={filtering}>
+              {filtering ? <LoadingSpinner label="Searching..." /> : "Search"}
+            </button>
             <button type="button" onClick={handleClearFilters} className="h-10 px-4 rounded-xl font-bold text-xs transition-all hover:bg-[var(--btn-ghost-bg-hover)]"
               style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body)' }}>
               Reset

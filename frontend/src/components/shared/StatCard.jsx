@@ -28,7 +28,7 @@ const StatCard = ({ label, number, trend, trendColor = "emerald", icon }) => {
     >
       {/* Top Row: Label and Icon */}
       <div className="flex justify-between items-center gap-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider truncate" style={{ color: 'var(--text-label)' }}>{label}</p>
+        <p className="min-w-0 pr-1 text-[10px] font-bold uppercase tracking-wider leading-tight whitespace-normal break-words" style={{ color: 'var(--text-label)' }}>{label}</p>
         {icon && (
           <div className="p-2 rounded-lg flex-shrink-0 transition-transform duration-300 group-hover:scale-110" style={theme.icon}>
             {icon}

@@ -311,6 +311,151 @@ const BundlesPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadListPDF = () => {
+    if (bundles.length === 0) {
+      return toast.error("No bundle recommendations available to export.");
+    }
+
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 34;
+    const columns = [
+      { title: "Rank", x: 34 },
+      { title: "Bundle ID", x: 75 },
+      { title: "Included Products", x: 145 },
+      { title: "Lift", x: 445 },
+      { title: "Conf.", x: 495 },
+      { title: "FP Supp.", x: 575 },
+      { title: "Promo Profit", x: 645 },
+      { title: "Status", x: 745 },
+    ];
+
+    const pdfText = (value) =>
+      String(value ?? "")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+
+    const fitText = (value, maxChars) => {
+      const text = String(value ?? "");
+      return text.length > maxChars ? `${text.slice(0, maxChars - 3)}...` : text;
+    };
+
+    const textLine = (x, y, text, size = 10, font = "F1") =>
+      `BT /${font} ${size} Tf ${x} ${y} Td (${pdfText(text)}) Tj ET\n`;
+
+    const pages = [];
+    const dateRangeStr = periodType === "day" ? targetDate : `${startDateParam} to ${endDateParam}`;
+
+    let currentPageStream = "";
+    let y = pageHeight - margin;
+
+    const startNewPage = (isFirstPage = false) => {
+      if (!isFirstPage) {
+        currentPageStream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+        pages.push(currentPageStream);
+        currentPageStream = "";
+      }
+      y = pageHeight - margin;
+
+      currentPageStream += textLine(margin, y, "BundleMind Promotional Bundle Recommendations", 16, "F2");
+      y -= 18;
+      currentPageStream += textLine(margin, y, `${periodType.toUpperCase()} report for period: ${dateRangeStr} (Generated: ${new Date().toLocaleString()})`, 9);
+      y -= 22;
+
+      if (isFirstPage && summary) {
+        currentPageStream += textLine(margin, y, `Total Bundles: ${summary.recommended_bundles}`, 10, "F2");
+        currentPageStream += textLine(160, y, `Avg Lift: ${summary.average_lift.toFixed(2)}x`, 10, "F2");
+        currentPageStream += textLine(270, y, `Avg Confidence: ${Math.round(summary.average_confidence * 100)}%`, 10, "F2");
+        currentPageStream += textLine(410, y, `Promo Revenue: ${formatCurrency(summary.expected_revenue !== undefined ? summary.expected_revenue : summary.average_revenue)}`, 10, "F2");
+        currentPageStream += textLine(600, y, `Promo Profit: ${formatCurrency(summary.expected_profit !== undefined ? summary.expected_profit : summary.average_profit)}`, 10, "F2");
+        y -= 22;
+      }
+
+      currentPageStream += "0.9 0.95 0.93 rg\n";
+      currentPageStream += `${margin} ${y - 5} 774 20 re f\n`;
+      currentPageStream += "0 0 0 rg\n";
+      columns.forEach((column) => {
+        currentPageStream += textLine(column.x, y, column.title, 9, "F2");
+      });
+      y -= 20;
+    };
+
+    // Initialize first page
+    startNewPage(true);
+
+    bundles.forEach((b) => {
+      const rowLines = b.products.length;
+      const rowHeight = rowLines * 12 + 10;
+
+      if (y - rowHeight < 40) {
+        startNewPage(false);
+      }
+
+      currentPageStream += textLine(34, y, `#${b.bundle_rank}`, 8.5);
+      currentPageStream += textLine(75, y, `#${b.bundle_id}`, 8.5);
+      currentPageStream += textLine(445, y, `${b.lift.toFixed(2)}x`, 8.5);
+      currentPageStream += textLine(495, y, `${(b.confidence * 100).toFixed(1)}%`, 8.5);
+      currentPageStream += textLine(575, y, `${(b.support * 100).toFixed(2)}%`, 8.5);
+      currentPageStream += textLine(645, y, formatCurrency(b.promo_bundle_profit ?? b.estimated_profit), 8.5);
+      currentPageStream += textLine(745, y, approvedBundles.has(b.bundle_id) ? "Approved" : "Pending", 8.5);
+
+      b.products.forEach((p, idx) => {
+        const text = idx === 0 ? p.product_name : `+ ${p.product_name}`;
+        currentPageStream += textLine(145, y - idx * 12, fitText(text, 52), 8.5);
+      });
+
+      const dividerY = y - rowLines * 12 - 3;
+      currentPageStream += "0.85 0.85 0.85 RG\n0.3 w\n";
+      currentPageStream += `${margin} ${dividerY} m ${pageWidth - margin} ${dividerY} l S\n0 G\n`;
+
+      y -= rowHeight;
+    });
+
+    currentPageStream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+    pages.push(currentPageStream);
+
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+    ];
+    const pageRefs = [];
+    pages.forEach((stream) => {
+      const pageObjectNumber = objects.length + 1;
+      const contentObjectNumber = pageObjectNumber + 1;
+      pageRefs.push(`${pageObjectNumber} 0 R`);
+      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`);
+      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
+    });
+    objects[1] = `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pageRefs.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object, index) => {
+      offsets.push(pdf.length);
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    });
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    const blob = new Blob([pdf], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bundlemind_recommendations_${periodType}_${targetDate}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const summaryItems = summary ? [
     { label: 'Recommended Bundles', value: summary.recommended_bundles.toLocaleString(), badge: 'Total', badgeColor: 'var(--accent-indigo)', badgeBg: 'rgba(99,102,241,0.12)', badgeBorder: 'rgba(99,102,241,0.25)' },
     { label: 'Average Lift', value: `${summary.average_lift.toFixed(2)}x`, badge: 'Lift', badgeColor: 'var(--accent-cyan-text)', badgeBg: 'rgba(6,182,212,0.12)', badgeBorder: 'rgba(6,182,212,0.25)', numColor: 'var(--accent-cyan-text)' },
@@ -663,10 +808,39 @@ const BundlesPage = () => {
                     </button>
                   </div>
                 )}
-                <button onClick={downloadList} className="flex items-center gap-2 rounded-xl font-bold text-xs px-5 py-2.5 transition-all hover:bg-[var(--btn-ghost-bg-hover)]"
-                  style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body-strong)' }}>
-                  Export CSV List
-                </button>
+                <details className="relative group">
+                  <summary className="list-none cursor-pointer text-xs font-bold px-5 py-2.5 rounded-xl border border-[var(--btn-ghost-border)] bg-[var(--btn-ghost-bg)] hover:bg-[var(--btn-ghost-bg-hover)] text-[var(--text-body-strong)] transition-all flex items-center gap-1.5 select-none">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export
+                    <svg className="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="absolute right-0 bottom-11 z-20 w-36 overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl shadow-slate-900/10">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        downloadList();
+                        e.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                    >
+                      CSV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        downloadListPDF();
+                        e.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                    >
+                      PDF
+                    </button>
+                  </div>
+                </details>
               </div>
             </div>
           )}

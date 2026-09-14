@@ -20,11 +20,21 @@ const COLORS = {
   "Slow Moving": "#fbbf24"
 };
 
+const toDateInputValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getCurrentMonthRange = (date) => {
+  const start = new Date(date.getFullYear(), date.getMonth(), 1);
+  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return [toDateInputValue(start), toDateInputValue(end)];
+};
+
 const DEFAULT_FILTERS = {
   periodType: "day",
-  selectedDate: "2026-01-15",
-  rangeStartDate: "2026-01-01",
-  rangeEndDate: "2026-01-31",
   category: "all",
   activeTab: "all",
   search: "",
@@ -32,7 +42,20 @@ const DEFAULT_FILTERS = {
   sortDesc: true,
 };
 
+const createDefaultFilters = () => {
+  const today = new Date();
+  const [rangeStartDate, rangeEndDate] = getCurrentMonthRange(today);
+
+  return {
+    ...DEFAULT_FILTERS,
+    selectedDate: toDateInputValue(today),
+    rangeStartDate,
+    rangeEndDate,
+  };
+};
+
 const FastSlowPage = () => {
+  const initialFilters = createDefaultFilters();
   const [products, setProducts] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +71,11 @@ const FastSlowPage = () => {
   const [totalRecords, setTotalRecords] = useState(0);
 
   // Prediction control card state
-  const [periodType, setPeriodType] = useState(DEFAULT_FILTERS.periodType);
-  const [selectedDate, setSelectedDate] = useState(DEFAULT_FILTERS.selectedDate);
-  const [rangeStartDate, setRangeStartDate] = useState(DEFAULT_FILTERS.rangeStartDate);
-  const [rangeEndDate, setRangeEndDate] = useState(DEFAULT_FILTERS.rangeEndDate);
-  const [category, setCategory] = useState(DEFAULT_FILTERS.category);
+  const [periodType, setPeriodType] = useState(initialFilters.periodType);
+  const [selectedDate, setSelectedDate] = useState(initialFilters.selectedDate);
+  const [rangeStartDate, setRangeStartDate] = useState(initialFilters.rangeStartDate);
+  const [rangeEndDate, setRangeEndDate] = useState(initialFilters.rangeEndDate);
+  const [category, setCategory] = useState(initialFilters.category);
   const [categories, setCategories] = useState([]);
 
   // Insights, distribution, and top lists state
@@ -167,17 +190,18 @@ const FastSlowPage = () => {
   };
 
   const handleResetFilters = () => {
-    setPeriodType(DEFAULT_FILTERS.periodType);
-    setSelectedDate(DEFAULT_FILTERS.selectedDate);
-    setRangeStartDate(DEFAULT_FILTERS.rangeStartDate);
-    setRangeEndDate(DEFAULT_FILTERS.rangeEndDate);
-    setCategory(DEFAULT_FILTERS.category);
-    setActiveTab(DEFAULT_FILTERS.activeTab);
-    setSearch(DEFAULT_FILTERS.search);
-    setSortBy(DEFAULT_FILTERS.sortBy);
-    setSortDesc(DEFAULT_FILTERS.sortDesc);
+    const nextDefaults = createDefaultFilters();
+    setPeriodType(nextDefaults.periodType);
+    setSelectedDate(nextDefaults.selectedDate);
+    setRangeStartDate(nextDefaults.rangeStartDate);
+    setRangeEndDate(nextDefaults.rangeEndDate);
+    setCategory(nextDefaults.category);
+    setActiveTab(nextDefaults.activeTab);
+    setSearch(nextDefaults.search);
+    setSortBy(nextDefaults.sortBy);
+    setSortDesc(nextDefaults.sortDesc);
     setPage(1);
-    fetchMovementPredictionsData(true, DEFAULT_FILTERS);
+    fetchMovementPredictionsData(true, nextDefaults);
   };
 
   const getWeekRange = (dateStr) => {
@@ -195,13 +219,6 @@ const FastSlowPage = () => {
     const start = new Date(base.getFullYear(), base.getMonth(), 1);
     const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
     return [toDateInputValue(start), toDateInputValue(end)];
-  };
-
-  const toDateInputValue = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
   };
 
   const handlePeriodTypeChange = (nextPeriodType) => {
@@ -565,10 +582,6 @@ const FastSlowPage = () => {
                   <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{p.category}</p>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right">
-                    <p className="text-xs font-black" style={{ color: 'var(--accent-green-text)' }}>{p.expected_quantity}</p>
-                    <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-very-muted)' }}>Expected Qty</p>
-                  </div>
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" 
                     style={{ background: 'rgba(16,185,129,0.12)', color: 'var(--accent-green-text)', border: '1px solid rgba(16,185,129,0.25)' }}>
                     {(p.movement_confidence * 100).toFixed(0)}%
@@ -588,7 +601,7 @@ const FastSlowPage = () => {
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: '#fbbf24' }}>
               Top 5 Expected Slow Moving
             </h3>
-            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Highest model probability for slow velocity</p>
+            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Highest model probability for slow flow</p>
           </div>
           <div className="space-y-2">
             {topSlowProducts.map(p => (
@@ -598,10 +611,6 @@ const FastSlowPage = () => {
                   <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{p.category}</p>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="text-right">
-                    <p className="text-xs font-black" style={{ color: '#fca5a5' }}>{p.expected_quantity}</p>
-                    <p className="text-[8px] font-bold uppercase" style={{ color: 'var(--text-very-muted)' }}>Expected Qty</p>
-                  </div>
                   <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" 
                     style={{ background: 'rgba(239,68,68,0.12)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.25)' }}>
                     {(p.movement_confidence * 100).toFixed(0)}%

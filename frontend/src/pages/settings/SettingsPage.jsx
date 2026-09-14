@@ -7,8 +7,6 @@ import ConfirmModal from "../../components/shared/ConfirmModal";
 import { BrandMark } from "../../components/shared/BrandLogo";
 import { getUsers, updateUserRole, updateUserStatus, deleteUser } from "../../services/userManagementService";
 import { getAccessRequests, approveAccessRequest, rejectAccessRequest, deleteAccessRequest } from "../../services/accessRequestService";
-import { getModelStatus } from "../../services/modelService";
-import { getMovementPredictions } from "../../services/productService";
 
 const card = {
   backgroundColor: "var(--card-bg)",
@@ -21,8 +19,8 @@ const card = {
 const ROLES = ["admin", "manager", "analyst", "viewer"];
 const STATUSES = ["active", "suspended"];
 
-const TAB_IDS = ["profile", "access-requests", "users", "model-info"];
-const TAB_LABELS = ["Profile & Account", "Access Requests", "User Management", "Model Info"];
+const TAB_IDS = ["profile", "access-requests", "users"];
+const TAB_LABELS = ["Profile & Account", "Access Requests", "User Management"];
 const ADMIN_TABS = new Set(["access-requests", "users"]);
 
 const getApiErrorMessage = (error, fallback) => {
@@ -485,124 +483,6 @@ const UserManagementTab = ({ currentUser }) => {
   );
 };
 
-// ─── Model Info Tab ───────────────────────────────────────────────────────────
-const ModelInfoTab = () => {
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.allSettled([
-      getModelStatus(),
-      getMovementPredictions({ period_type: "month", selected_date: "2026-01-15", page: 1, limit: 1 }),
-    ])
-      .then(([modelResult, movementResult]) => {
-        const modelStatus = modelResult.status === "fulfilled" ? modelResult.value.data : {};
-        const movementModel = movementResult.status === "fulfilled" ? movementResult.value.data?.model : null;
-        const movementStatus = movementModel
-          ? {
-              model_loaded: true,
-              predictions_loaded: true,
-              period_analysis_loaded: true,
-              training_summary_loaded: true,
-            }
-          : null;
-        setStatus({
-          ...modelStatus,
-          random_forest: movementStatus
-            ? { ...(modelStatus.random_forest || {}), ...movementStatus }
-            : modelStatus.random_forest,
-        });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const modelSections = status
-    ? [
-        {
-          title: "Random Forest — Product Movement",
-          icon: "🌲",
-          color: status.random_forest?.model_loaded ? "var(--accent-green-text)" : "#f87171",
-          bg: status.random_forest?.model_loaded ? "rgba(16,185,129,0.08)" : "rgba(239,68,68,0.08)",
-          border: status.random_forest?.model_loaded ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)",
-          statusText: status.random_forest?.model_loaded ? "Active" : "Inactive",
-          items: [
-            { label: "Model Loaded", value: status.random_forest?.model_loaded ? "✓ Yes" : "✗ No", ok: status.random_forest?.model_loaded },
-            { label: "Predictions CSV", value: status.random_forest?.predictions_loaded ? "✓ Loaded" : "✗ Missing", ok: status.random_forest?.predictions_loaded },
-            { label: "Training Summary", value: status.random_forest?.training_summary_loaded ? "✓ Loaded" : "✗ Missing", ok: status.random_forest?.training_summary_loaded },
-            { label: "Algorithm", value: "Random Forest Classifier" },
-            { label: "Target Classes", value: "Fast Moving / Medium Moving / Slow Moving" },
-          ],
-        },
-        {
-          title: "FP-Growth — Bundle Recommendations",
-          icon: "🧩",
-          color: status.fp_growth?.model_loaded ? "#a5b4fc" : "#f87171",
-          bg: status.fp_growth?.model_loaded ? "rgba(99,102,241,0.08)" : "rgba(239,68,68,0.08)",
-          border: status.fp_growth?.model_loaded ? "rgba(99,102,241,0.2)" : "rgba(239,68,68,0.2)",
-          statusText: status.fp_growth?.model_loaded ? "Active" : "Inactive",
-          items: [
-            { label: "Model Loaded", value: status.fp_growth?.model_loaded ? "✓ Yes" : "✗ No", ok: status.fp_growth?.model_loaded },
-            { label: "Recommendations CSV", value: status.fp_growth?.recommendations_loaded ? "✓ Loaded" : "✗ Missing", ok: status.fp_growth?.recommendations_loaded },
-            { label: "Association Rules", value: status.fp_growth?.rules_loaded ? "✓ Loaded" : "✗ Missing", ok: status.fp_growth?.rules_loaded },
-            { label: "Product Lookup", value: status.fp_growth?.product_lookup_loaded ? "✓ Loaded" : "✗ Missing", ok: status.fp_growth?.product_lookup_loaded },
-            { label: "Algorithm", value: "FP-Growth (Frequent Pattern Mining)" },
-            { label: "Output", value: "Association Rules + Bundle Sets" },
-          ],
-        },
-        {
-          title: "Demand Forecasting",
-          icon: "📈",
-          color: status.demand_forecasting?.model_loaded ? "var(--accent-cyan-text)" : "#f87171",
-          bg: status.demand_forecasting?.model_loaded ? "rgba(6,182,212,0.08)" : "rgba(239,68,68,0.08)",
-          border: status.demand_forecasting?.model_loaded ? "rgba(6,182,212,0.2)" : "rgba(239,68,68,0.2)",
-          statusText: status.demand_forecasting?.model_loaded ? "Active" : "Inactive",
-          items: [
-            { label: "Model Loaded", value: status.demand_forecasting?.model_loaded ? "✓ Yes" : "✗ No", ok: status.demand_forecasting?.model_loaded },
-            { label: "Type", value: status.demand_forecasting?.type || "Hybrid Ensemble Model" },
-            { label: "Method", value: status.demand_forecasting?.method || "Prophet + HistGradientBoosting" },
-            { label: "Data Source", value: status.demand_forecasting?.data_source || "Live MySQL transactions" },
-            { label: "Retraining Required", value: status.demand_forecasting?.retraining_required || "No — computes on uploaded data" },
-            { label: "Granularity", value: status.demand_forecasting?.granularity || "Daily / Weekly / Monthly" },
-          ],
-        },
-      ]
-    : [];
-
-  return (
-    <div className="space-y-5">
-      {loading ? (
-        <div className="flex justify-center py-12"><LoadingSpinner label="Loading model status..." /></div>
-      ) : (
-        modelSections.map((sec) => (
-          <div key={sec.title} className="rounded-2xl p-6" style={{ ...card, borderLeft: `2px solid ${sec.border}` }}>
-            <div className="flex items-center gap-3 mb-5">
-              <span className="text-xl">{sec.icon}</span>
-              <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{sec.title}</h3>
-              <span className="ml-auto text-[9px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider"
-                style={{ background: sec.bg, color: sec.color, border: `1px solid ${sec.border}` }}>
-                {sec.statusText}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {sec.items.map(({ label, value, ok }) => (
-                <div key={label} className="flex justify-between items-center py-2.5 px-4 rounded-xl"
-                  style={{ background: "var(--tag-bg)", border: "1px solid var(--tag-border)" }}>
-                  <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{label}</span>
-                  <span className="text-[11px] font-bold ml-4 text-right"
-                    style={{ color: ok === true ? "var(--accent-green-text)" : ok === false ? "#f87171" : "var(--text-body-strong)" }}>
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  );
-};
-
 // ─── Main Settings Page ───────────────────────────────────────────────────────
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -679,7 +559,6 @@ const SettingsPage = () => {
       {activeTab === "profile" && <ProfileTab user={displayUser} />}
       {activeTab === "access-requests" && isAdmin && <AccessRequestsTab />}
       {activeTab === "users" && isAdmin && <UserManagementTab currentUser={displayUser} />}
-      {activeTab === "model-info" && <ModelInfoTab />}
     </div>
   );
 };
