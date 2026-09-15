@@ -37,7 +37,7 @@ class ForecastService:
         if self.loaded:
             return
 
-        # Check dependencies
+       
         try:
             import joblib
             import pandas as pd
@@ -50,7 +50,7 @@ class ForecastService:
             logger.error(f"Missing required Python dependencies for forecasting: {e}")
             raise RuntimeError(f"Missing required Python dependencies for forecasting: {e}")
 
-        # Check files existence
+       
         if not self.tx_model_path.exists():
             logger.error(f"Missing model file: {self.tx_model_path}")
             raise FileNotFoundError(f"Missing model file: {self.tx_model_path}")
@@ -58,7 +58,7 @@ class ForecastService:
             logger.error(f"Missing model file: {self.qty_model_path}")
             raise FileNotFoundError(f"Missing model file: {self.qty_model_path}")
 
-        # Load bundles
+        
         try:
             self._tx_bundle = joblib.load(self.tx_model_path)
         except Exception as e:
@@ -71,7 +71,7 @@ class ForecastService:
             logger.error(f"Corrupted or invalid quantity model: {e}")
             raise ValueError(f"Corrupted or invalid quantity model: {e}")
 
-        # Validate bundles structure
+        
         required_fields = [
             "artifact_version", "model_version", "target", "selected_model",
             "prophet_model", "gradient_boosting_model", "gradient_boosting_columns",
@@ -92,7 +92,7 @@ class ForecastService:
         self.loaded = True
         logger.info("Forecasting model bundles loaded successfully.")
         
-        # Warm up forecast cache
+        
         try:
             self.warmup_cache()
         except Exception as e:
@@ -107,7 +107,7 @@ class ForecastService:
         start = datetime.strptime(start_date_str, "%Y-%m-%d").date()
         end = datetime.strptime(end_date_str, "%Y-%m-%d").date()
 
-        # Check if range is fully cached
+       
         all_cached = True
         curr = start
         while curr <= end:
@@ -178,7 +178,7 @@ class ForecastService:
 
         default_start = date.today()
 
-        # Parse inputs
+        
         if start_date:
             try:
                 requested_start = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -196,7 +196,7 @@ class ForecastService:
         elif days is not None:
             end = start + timedelta(days=days - 1)
         else:
-            # default to 30 days
+          
             end = start + timedelta(days=29)
 
         if start > end:
@@ -204,7 +204,7 @@ class ForecastService:
 
         daily_records = self.get_cached_predictions("transactions", start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
 
-        # Aggregate for response
+        
         return self.aggregate_future_forecasts(daily_records, view)
 
     def aggregate_future_forecasts(self, daily_records: List[Dict[str, Any]], view: str) -> List[Dict[str, Any]]:
@@ -300,7 +300,7 @@ class ForecastService:
             raise ValueError(f"Invalid view: {view}")
 
     def get_actual_vs_predicted(self, db: Session, start_date: date, end_date: date, view: str = "daily", target: str = "transactions") -> Dict[str, Any]:
-        # 1. Run predictions for the entire requested range in real time
+        
         try:
             predictions = self.run_future_forecast(
                 db=db,
@@ -330,7 +330,7 @@ class ForecastService:
                 "data": []
             }
 
-        # 3. Query actual sales values from SalesTransaction
+        
         actual_rows = db.query(
             func.date(SalesTransaction.sale_date).label("date_val"),
             func.count(func.distinct(SalesTransaction.invoice_id)).label("tx_count"),
@@ -340,7 +340,7 @@ class ForecastService:
             SalesTransaction.sale_date <= datetime.combine(end_date, time.max)
         ).group_by(func.date(SalesTransaction.sale_date)).all()
 
-        # Map actual values to date
+       
         actuals_map = {}
         for r in actual_rows:
             d = r.date_val
@@ -350,7 +350,7 @@ class ForecastService:
                 d = d.date()
             actuals_map[d] = (r.tx_count, r.qty_sum)
 
-        # 4. Left join actual values onto in-memory predictions
+        
         daily_comparison = []
         for pred in predictions:
             pred_date_str = pred["forecast_date"]
@@ -406,7 +406,7 @@ class ForecastService:
                 "is_partial_forecast_period": False
             })
 
-        # Process view aggregation
+       
         if view == "daily":
             comparison_rows = daily_comparison
         elif view == "weekly":
@@ -553,7 +553,7 @@ class ForecastService:
         else:
             raise ValueError(f"Invalid view: {view}")
 
-        # Compute summary metrics ONLY from rows with actual values
+        
         matched_rows = [r for r in comparison_rows if r["has_actual"]]
         
         actual_total = sum(r["actual"] for r in matched_rows) if matched_rows else 0

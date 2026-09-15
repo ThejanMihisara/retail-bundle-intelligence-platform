@@ -43,7 +43,7 @@ class ModelService:
         self.fp_global_product_quantity = None
 
         self.loaded = False
-        # Cache for live RF inference results from uploaded DB data
+       
         self.live_rf_predictions = None
         self.live_rf_signature = None
 
@@ -71,8 +71,7 @@ class ModelService:
         if self.loaded:
             return
         
-        # Random Forest model, predictions, and period analysis are now managed dynamically by ProductMovementService.
-        # We do not load them here to prevent duplicate memory allocation.
+      
         self.rf_model = None
         self.rf_predictions = None
         self.rf_period_analysis = None
@@ -101,7 +100,7 @@ class ModelService:
         except Exception as e:
             logger.error(f"Error loading RF classification report: {e}")
 
-        # Load FP-Growth files
+       
         try:
             fp_model_path = self.fp_model_dir / "bundle_recommendation_model.joblib"
             if fp_model_path.exists():
@@ -119,7 +118,7 @@ class ModelService:
         except Exception as e:
             logger.error(f"Error loading FP model from joblib: {e}")
 
-        # Fallbacks for CSV files
+       
         try:
             fp_rec_path = self.fp_model_dir / "fp_growth_bundle_recommendations.csv"
             if fp_rec_path.exists() and self.fp_recommendations is None:
@@ -149,7 +148,7 @@ class ModelService:
         except Exception as e:
             logger.error(f"Error loading FP training summary JSON: {e}")
 
-        # Keep compatibility with existing endpoints looking for product_lookup
+        
         if self.fp_product_profile is not None:
             self.fp_product_lookup = self.fp_product_profile
 
@@ -160,7 +159,7 @@ class ModelService:
         forecast_loaded = False
         from services.product_movement_service import product_movement_service
         try:
-            # Lazy import because forecast startup touches DB models.
+           
             from services.forecast_service import forecast_service
             forecast_service.check_ready()
             forecast_loaded = forecast_service.loaded

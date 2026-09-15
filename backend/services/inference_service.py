@@ -31,8 +31,7 @@ from models.transaction import SalesTransaction
 
 logger = logging.getLogger(__name__)
 
-# Category columns expected by the RF model (from feature_importance.csv)
-# These are one-hot encoded; any unseen category gets all zeros.
+
 TRAINING_CATEGORIES = [
     "Baby & Kids",
     "Beverages",
@@ -48,7 +47,7 @@ TRAINING_CATEGORIES = [
     "Stationery",
 ]
 
-# Ordered feature columns exactly as the RF was trained
+
 RF_FEATURE_COLUMNS = [
     "total_quantity_sold",
     "high_demand_quantity",
@@ -119,7 +118,7 @@ def compute_product_features_from_db(db: Session, reference_date: pd.Timestamp |
       - All RF feature columns
       - product_id, product_name, category, cost_price, retail_price columns for display
     """
-    # Pull all transactions
+    
     rows = db.query(
         SalesTransaction.product_id,
         SalesTransaction.product_name,
@@ -169,7 +168,7 @@ def compute_product_features_from_db(db: Session, reference_date: pd.Timestamp |
         selling_period_days = active_days
         recency_days = int((reference_date - last_sale).days)
 
-        # Active months (distinct YYYY-MM)
+        
         group["ym"] = group["sale_date"].dt.to_period("M")
         monthly = group.groupby("ym")["quantity_sold"].sum()
         active_months = int(monthly.shape[0])
@@ -178,7 +177,7 @@ def compute_product_features_from_db(db: Session, reference_date: pd.Timestamp |
         max_monthly_quantity = float(monthly.max()) if active_months > 0 else 0.0
         min_monthly_quantity = float(monthly.min()) if active_months > 0 else 0.0
 
-        # High-demand month = month where qty > 80th percentile
+       
         threshold = monthly.quantile(0.8) if active_months >= 3 else monthly.max()
         high_demand_months = monthly[monthly > threshold]
         high_demand_quantity = float(high_demand_months.sum())
@@ -187,7 +186,7 @@ def compute_product_features_from_db(db: Session, reference_date: pd.Timestamp |
         normal_month_quantity = float(normal_months.mean()) if len(normal_months) > 0 else avg_monthly_quantity
         normal_month_quantity_share = normal_month_quantity / max(avg_monthly_quantity, 1)
 
-        # Revenue in high-demand months
+       
         monthly_rev = group.groupby("ym")["total_revenue"].sum()
         high_demand_revenue = float(monthly_rev[monthly_rev.index.isin(high_demand_months.index)].sum())
         normal_month_revenue = float(monthly_rev[~monthly_rev.index.isin(high_demand_months.index)].mean()) if len(monthly_rev) > 0 else 0.0
@@ -197,7 +196,7 @@ def compute_product_features_from_db(db: Session, reference_date: pd.Timestamp |
         unit_profit = total_profit / max(total_quantity_sold, 1)
         profit_margin = total_profit / max(total_revenue, 1)
 
-        # One-hot categories
+       
         cat_features = {f"category_{cat}": 0.0 for cat in TRAINING_CATEGORIES}
         cat_key = f"category_{category}"
         if cat_key in cat_features:
@@ -273,7 +272,7 @@ def run_rf_inference(features_df: pd.DataFrame, rf_model: Any) -> pd.DataFrame:
         result["probability_fast_moving"] = 0.0
         return result
 
-    # Build the X matrix in the exact column order the RF expects
+    
     model_feature_columns = artifact_feature_columns or RF_FEATURE_COLUMNS
     X_cols = [c for c in model_feature_columns if c in features_df.columns]
     missing_cols = [c for c in model_feature_columns if c not in features_df.columns]
@@ -282,7 +281,7 @@ def run_rf_inference(features_df: pd.DataFrame, rf_model: Any) -> pd.DataFrame:
     for mc in missing_cols:
         X[mc] = "Unknown" if mc == "category" else 0.0
 
-    # Reorder to match training order exactly
+    
     X = X.reindex(columns=model_feature_columns, fill_value=0.0)
     for col in X.columns:
         if col == "category":
@@ -298,9 +297,7 @@ def run_rf_inference(features_df: pd.DataFrame, rf_model: Any) -> pd.DataFrame:
             final_step = list(predictor.named_steps.values())[-1]
             classes = list(getattr(final_step, "classes_", []))
 
-        # Map class indices to probability columns
-        # classes are 0='Slow Moving', 1='Medium Moving', 2='Fast Moving'
-        # but may differ if the model was trained differently — use class names
+      
         label_map = {}
         for i, cls in enumerate(classes):
             if hasattr(cls, 'lower'):
@@ -317,7 +314,7 @@ def run_rf_inference(features_df: pd.DataFrame, rf_model: Any) -> pd.DataFrame:
         result = features_df.copy()
         result["predicted_movement_level"] = [str(p) for p in preds]
 
-        # Normalize label if model outputs 0/1/2
+        
         def norm_label(lbl):
             if str(lbl) == "0" or str(lbl).lower() == "slow moving":
                 return "Slow Moving"
@@ -344,7 +341,7 @@ def run_rf_inference(features_df: pd.DataFrame, rf_model: Any) -> pd.DataFrame:
 
     except Exception as exc:
         logger.error("RF inference failed: %s", exc, exc_info=True)
-        # Return with neutral predictions rather than crashing
+        
         result = features_df.copy()
         result["predicted_movement_level"] = "Unknown"
         result["movement_level"] = "Unknown"

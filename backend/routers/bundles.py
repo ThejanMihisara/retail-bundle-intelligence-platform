@@ -176,7 +176,7 @@ async def get_bundles(
 ):
     df = get_recommendations_df()
     
-    # Requirement: "Each bundle must show 4 or more products"
+    
     filtered_df = df[df["product_count"] >= 4].copy()
     
     if category:
@@ -192,7 +192,7 @@ async def get_bundles(
     if min_lift is not None:
         filtered_df = filtered_df[filtered_df["avg_pair_lift"] >= min_lift]
         
-    # Sort by lift descending
+   
     filtered_df = filtered_df.sort_values("avg_pair_lift", ascending=False)
     
     total_records = len(filtered_df)
@@ -212,17 +212,17 @@ async def get_bundles(
 
 @router.get("/recommend")
 async def recommend_bundles(
-    product: str, # ID or Name
+    product: str, 
     limit: int = 5,
     _: User = Depends(get_current_user)
 ):
     df = get_recommendations_df()
-    # Filter bundles with 4 or more products
+    
     filtered_df = df[df["product_count"] >= 4].copy()
     
     product_lower = product.lower()
     
-    # Find bundles containing the product
+   
     match_mask = filtered_df["product_names"].str.lower().str.contains(product_lower) | \
                  filtered_df["product_ids"].astype(str).str.contains(product_lower)
                  
@@ -239,7 +239,7 @@ async def search_bundles(query: str, limit: int = 10, _: User = Depends(get_curr
 async def get_bundles_summary(_: User = Depends(get_current_user)):
     df = get_recommendations_df()
     
-    # Limit calculation to >= 4 products
+    
     filtered_df = df[df["product_count"] >= 4]
     
     if len(filtered_df) == 0:
@@ -288,7 +288,7 @@ async def get_rules(
     if min_confidence is not None:
         filtered_df = filtered_df[filtered_df["confidence"] >= min_confidence]
         
-    # Sort by lift descending
+    
     filtered_df = filtered_df.sort_values("lift", ascending=False)
     
     total_records = len(filtered_df)
@@ -357,7 +357,7 @@ async def get_period_bundle_analysis(
     min_confidence: Optional[float] = None,
     _: User = Depends(get_current_user)
 ):
-    # Parse target date (fallback to current date)
+    
     if not target_date:
         target_date = datetime.now().strftime("%Y-%m-%d")
         
@@ -366,7 +366,7 @@ async def get_period_bundle_analysis(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid date format. Expected YYYY-MM-DD.")
 
-    # Calculate period bounds and label
+    
     if period_type.lower() == "day":
         period_start = target_date
         period_end = target_date
@@ -377,7 +377,7 @@ async def get_period_bundle_analysis(
         period_start = start_of_week.strftime("%Y-%m-%d")
         period_end = end_of_week.strftime("%Y-%m-%d")
         period_label = f"{start_of_week.day} {start_of_week.strftime('%b')} {start_of_week.year} - {end_of_week.day} {end_of_week.strftime('%b')} {end_of_week.year}"
-    else:  # month
+    else:  
         start_of_month = target_dt.replace(day=1)
         next_month = target_dt.replace(day=28) + timedelta(days=4)
         end_of_month = next_month - timedelta(days=next_month.day)
@@ -401,7 +401,7 @@ async def get_period_bundle_analysis(
         period_end = end_date
         period_label = f"{start_dt.day} {start_dt.strftime('%b')} {start_dt.year} - {end_dt.day} {end_dt.strftime('%b')} {end_dt.year}"
 
-    # Load model and fallbacks
+    
     model_service.load_models()
     
     if model_service.fp_recommendations is None:
@@ -436,11 +436,11 @@ async def get_period_bundle_analysis(
             (df_csv["period_start"] == period_start)
         ]
 
-    # Build necessary lookups
+   
     movement_lookup = {}
     price_lookup, product_lookup, fallback_movement_lookup, bundle_recs_lookup = _get_bundle_lookup_maps()
 
-    # Query dynamic product movement classifications from ProductMovementService
+    
     try:
         rf_predictions = product_movement_service.get_predictions(target_date, period_type)
         movement_lookup = dict(zip(rf_predictions["product_id"].astype(str), rf_predictions["predicted_movement_level"]))
@@ -473,15 +473,13 @@ async def get_period_bundle_analysis(
             med_c = sum(1 for p in products_list if p["movement_label"] == "Medium Moving")
             slow_c = sum(1 for p in products_list if p["movement_label"] == "Slow Moving")
 
-            # Validation checks:
-            # - product_count must be between 4 and 6
+           
             if not (4 <= len(products_list) <= 6):
                 continue
-            # - every product ID must be unique inside the bundle
+            
             if len(set(pids)) != len(pids):
                 continue
-            # - fast_product_count must be at least 1
-            # - slow_product_count must be at least 1
+            
             if fast_c < 1 or slow_c < 1:
                 continue
 
@@ -559,15 +557,13 @@ async def get_period_bundle_analysis(
             med_c = sum(1 for p in products_list if p["movement_label"] == "Medium Moving")
             slow_c = sum(1 for p in products_list if p["movement_label"] == "Slow Moving")
 
-            # Validation checks:
-            # - product_count must be between 4 and 6
+          
             if not (4 <= len(products_list) <= 6):
                 continue
-            # - every product ID must be unique inside the bundle
+            
             if len(set(pids)) != len(pids):
                 continue
-            # - fast_product_count must be at least 1
-            # - slow_product_count must be at least 1
+           
             if fast_c < 1 or slow_c < 1:
                 continue
 

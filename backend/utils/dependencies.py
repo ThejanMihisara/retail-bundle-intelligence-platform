@@ -12,7 +12,7 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-development")
+SECRET_KEY = os.getenv("SECRET_KEY", "bundle2004@")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 

@@ -56,7 +56,7 @@ async def login(
     if user.status.value == "suspended":
         raise HTTPException(status_code=403, detail="Your account has been suspended.")
 
-    # Update last login timestamp
+    
     user.last_login_at = datetime.utcnow()
     if user.status.value == "invited":
         user.status = UserStatus.active

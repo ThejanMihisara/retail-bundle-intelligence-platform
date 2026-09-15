@@ -26,7 +26,7 @@ class AccessRequest(Base):
     assigned_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
     reviewed_by: Mapped[str | None] = mapped_column(String(150), nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    # Invitation token for secure account setup
+    
     invite_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     invite_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

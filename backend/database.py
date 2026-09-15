@@ -20,10 +20,10 @@ class Base(DeclarativeBase):
     pass
 
 
-# Import models here to register them with metadata
+
 from models.user import User
 from models.transaction import SalesTransaction
-from models.access_request import AccessRequest  # noqa: F401 — registers table
+from models.access_request import AccessRequest 
 
 
 def get_db():
@@ -87,7 +87,7 @@ def initialize_database() -> None:
                 if column_exists:
                     connection.execute(text(f"ALTER TABLE access_requests DROP COLUMN {column_name}"))
 
-        # Auto-migration: add upload_batch column to sales_transactions if missing
+       
         try:
             with engine.begin() as connection:
                 connection.execute(text("ALTER TABLE sales_transactions ADD COLUMN upload_batch INT NULL"))
@@ -101,8 +101,7 @@ def initialize_database() -> None:
         except Exception:
             pass
 
-        # No-op
-
+        
     except OperationalError as exc:
         raise RuntimeError(
             "Could not connect to MySQL. Update bundlemind-backend/.env with your real "

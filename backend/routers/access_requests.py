@@ -41,7 +41,7 @@ def _attach_reviewer_names(requests: list[AccessRequest], db: Session) -> list[A
 @router.post("", response_model=AccessRequestOut, status_code=201)
 async def submit_access_request(payload: AccessRequestCreate, db: Session = Depends(get_db)):
     """Public endpoint — anyone can submit a request for access."""
-    # Check for duplicate pending requests from same email
+    
     existing = db.query(AccessRequest).filter(
         AccessRequest.email == payload.email,
         AccessRequest.status == RequestStatus.pending,
@@ -104,7 +104,7 @@ async def approve_access_request(
     if len(payload.password.strip()) < 8:
         raise HTTPException(status_code=422, detail="Password must be at least 8 characters.")
 
-    # Determine role
+    
     assigned_role = payload.assigned_role or req.requested_role or "analyst"
     try:
         role_enum = UserRole(assigned_role)
@@ -133,12 +133,12 @@ async def approve_access_request(
         )
         db.add(new_user)
 
-    # Update request status
+    
     req.status = RequestStatus.approved
     req.assigned_role = assigned_role
     req.reviewed_by = admin.email
     req.reviewed_at = datetime.utcnow()
-    # Password is hashed on the user account; do not store plaintext credentials.
+    
     req.invite_token = None
 
     try:

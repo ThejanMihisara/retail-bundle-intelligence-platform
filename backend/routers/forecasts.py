@@ -76,7 +76,7 @@ async def get_comparison_defaults(
         from sqlalchemy import func
         from datetime import date, timedelta
         
-        # 1. Oldest actual sale date
+        
         min_date = db.query(func.min(SalesTransaction.sale_date)).scalar()
         if min_date is not None:
             if isinstance(min_date, datetime):
@@ -86,7 +86,7 @@ async def get_comparison_defaults(
         else:
             oldest_date_str = "2024-01-01"
             
-        # 2. Tomorrow's date
+       
         tomorrow = date.today() + timedelta(days=1)
         tomorrow_str = tomorrow.strftime("%Y-%m-%d")
         

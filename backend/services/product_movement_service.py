@@ -24,12 +24,12 @@ class ProductMovementService:
             / "product_movement_random_forest_bundle.pkl"
         )
         
-        # Load initially
+     
         self.load_model()
 
     def load_model(self):
         try:
-            # Check required dependency
+            
             try:
                 import sklearn
                 import joblib
@@ -45,10 +45,10 @@ class ProductMovementService:
                 logger.error(self.load_error)
                 return
             
-            # Record mtime
+           
             self.model_mtime = self.model_path.stat().st_mtime
             
-            # Load bundle
+           
             try:
                 bundle = load_product_movement_bundle(str(self.model_path))
             except Exception as e:
@@ -57,36 +57,34 @@ class ProductMovementService:
                 logger.error(self.load_error)
                 return
 
-            # Validate
-            # - pipeline exists
             if "pipeline" not in bundle or bundle["pipeline"] is None:
                 self.load_error = "Model bundle invalid: 'pipeline' is missing or None."
                 self.bundle = None
                 logger.error(self.load_error)
                 return
             
-            # - feature_columns exists
+           
             if "feature_columns" not in bundle or bundle["feature_columns"] is None:
                 self.load_error = "Model bundle invalid: 'feature_columns' is missing or None."
                 self.bundle = None
                 logger.error(self.load_error)
                 return
 
-            # - profile_tables exists
+           
             if "profile_tables" not in bundle or bundle["profile_tables"] is None:
                 self.load_error = "Model bundle invalid: 'profile_tables' is missing or None."
                 self.bundle = None
                 logger.error(self.load_error)
                 return
             
-            # - model_version exists
+            
             if "model_version" not in bundle or not bundle["model_version"]:
                 self.load_error = "Model bundle invalid: 'model_version' is missing."
                 self.bundle = None
                 logger.error(self.load_error)
                 return
 
-            # - supported_period_types contains day, week and month
+           
             supported = bundle.get("supported_period_types", [])
             if not all(p in supported for p in ["day", "week", "month"]):
                 self.load_error = f"Model bundle invalid: 'supported_period_types' must contain day, week, and month. Found: {supported}"
@@ -94,7 +92,7 @@ class ProductMovementService:
                 logger.error(self.load_error)
                 return
             
-            # - classes contain Fast Moving, Medium Moving and Slow Moving
+            
             classes = list(bundle.get("classes", []))
             if not classes:
                 pipeline = bundle["pipeline"]
@@ -121,7 +119,7 @@ class ProductMovementService:
             logger.error(self.load_error)
 
     def check_ready(self):
-        # Check if the file mtime changed
+     
         if self.model_path.exists():
             current_mtime = self.model_path.stat().st_mtime
             if self.model_mtime is None or current_mtime != self.model_mtime:

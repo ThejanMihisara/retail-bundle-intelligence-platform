@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="BundleMind API", version="1.0.0", lifespan=lifespan)
 
-# Parse CORS origins from env — comma-separated list, fallback to all origins in dev
+
 _cors_env = os.getenv("CORS_ORIGINS", "")
 allowed_origins = [o.strip() for o in _cors_env.split(",") if o.strip()]
 dev_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]

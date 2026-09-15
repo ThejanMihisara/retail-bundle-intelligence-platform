@@ -44,9 +44,7 @@ def _apply_sales_filters(query, search: Optional[str] = None, category: Optional
     return query
 
 
-# ---------------------------------------------------------------------------
-# GET /api/sales  — paginated transaction list
-# ---------------------------------------------------------------------------
+
 @router.get("")
 async def get_sales(
     page: int = Query(1, ge=1),
@@ -105,9 +103,7 @@ async def get_sales(
     }
 
 
-# ---------------------------------------------------------------------------
-# GET /api/sales/summary  — aggregate KPIs
-# ---------------------------------------------------------------------------
+
 @router.get("/summary")
 async def get_sales_summary(
     category: Optional[str] = None,
@@ -140,7 +136,7 @@ async def get_sales_summary(
         "total_invoices": int(stats.total_invoices or 0),
         "total_products": int(stats.total_products or 0),
         "total_quantity": int(stats.total_quantity or 0),
-        "quantity_sold":  int(stats.total_quantity or 0),   # alias for frontend compatibility
+        "quantity_sold":  int(stats.total_quantity or 0),   
         "total_revenue":  total_revenue,
         "total_profit":   total_profit,
         "profit_margin":  profit_margin,
@@ -149,9 +145,7 @@ async def get_sales_summary(
     return result
 
 
-# ---------------------------------------------------------------------------
-# GET /api/sales/monthly  — revenue/profit/quantity grouped by month
-# ---------------------------------------------------------------------------
+
 @router.get("/monthly")
 async def get_sales_monthly(
     category: Optional[str] = None,
@@ -191,9 +185,7 @@ async def get_sales_monthly(
     return result
 
 
-# ---------------------------------------------------------------------------
-# GET /api/sales/categories  — distinct category list
-# ---------------------------------------------------------------------------
+
 @router.get("/categories")
 async def get_sales_categories(
     db: Session = Depends(get_db),
@@ -214,9 +206,7 @@ async def get_sales_categories(
     return result
 
 
-# ---------------------------------------------------------------------------
-# POST /api/sales/upload-csv  — bulk import from CSV file
-# ---------------------------------------------------------------------------
+
 EXPECTED_COLUMNS = {
     "invoice_id", "sale_date", "product_id", "product_name",
     "category", "quantity_sold", "cost_price", "retail_price",
@@ -315,7 +305,7 @@ async def upload_csv(
 
     existing_keys = set()
     if dedupe_existing and pending_rows:
-        # This check can be expensive on large databases, so it is opt-in.
+        
         min_date = min(row["sale_date"] for row in pending_rows)
         max_date = max(row["sale_date"] for row in pending_rows)
         existing = db.query(
@@ -374,9 +364,7 @@ async def upload_csv(
     }
 
 
-# ---------------------------------------------------------------------------
-# DELETE /api/sales/clear  — wipe all transactions
-# ---------------------------------------------------------------------------
+
 @router.delete("/clear")
 async def clear_sales(
     db: Session = Depends(get_db),

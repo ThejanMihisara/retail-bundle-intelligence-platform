@@ -116,7 +116,7 @@ async def get_overview(db: Session = Depends(get_db), _: User = Depends(get_curr
 
     model_service.load_models()
 
-    # --- Sales KPIs from MySQL ---
+    
     if db:
         stats = db.query(
             func.sum(SalesTransaction.quantity_sold).label("total_sales"),
@@ -132,20 +132,19 @@ async def get_overview(db: Session = Depends(get_db), _: User = Depends(get_curr
         total_invoices = int(stats.total_invoices or 0)
         total_products = int(stats.total_products or 0)
     else:
-        # Strict empty state — no fallback to training data
+        
         total_sales = 0
         total_revenue = 0.0
         total_profit = 0.0
         total_invoices = 0
         total_products = 0
 
-    # --- Movement counts ---
-    # Use the same ProductMovementService predictor as the Product Movement page.
+    
     fast_count = medium_count = slow_count = 0
     if total_products > 0:
         fast_count, medium_count, slow_count = _get_monthly_movement_counts()
 
-    # --- Bundle count from FP-Growth (always pre-trained, no need for live recompute) ---
+    
     total_bundles = 0
     df_bundles = model_service.fp_recommendations
     if df_bundles is not None:
@@ -350,7 +349,7 @@ async def get_recent_insights(db: Session = Depends(get_db), _: User = Depends(g
         DASHBOARD_CACHE[cache_key] = result
         return result
 
-    # Use live RF predictions if available
+   
     live_rf = getattr(model_service, "live_rf_predictions", None)
     df_rf = live_rf if live_rf is not None else model_service.rf_predictions
 

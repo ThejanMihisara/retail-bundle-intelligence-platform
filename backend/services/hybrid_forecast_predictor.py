@@ -69,14 +69,14 @@ def gradient_boosting_predict(bundle, dates):
     model = bundle["gradient_boosting_model"]
 
     for i, date_val in enumerate(dates_pd):
-        # Fetch precomputed calendar features for this date
+        
         row_dict = calendar_df.iloc[i].to_dict()
 
-        # Add lag features
+        
         for lag in lags:
             row_dict[f"lag_{lag}"] = history[-lag]
 
-        # Add rolling window features
+        
         for window in windows:
             recent = history[-window:]
             row_dict[f"mean_{window}"] = sum(recent) / window
@@ -85,7 +85,7 @@ def gradient_boosting_predict(bundle, dates):
             row_dict[f"max_{window}"] = max(recent)
             row_dict[f"median_{window}"] = np.median(recent)
 
-        # Convert to single-row DataFrame ordered by gb_cols
+        
         row_data = [row_dict[col] for col in gb_cols]
         row_df = pd.DataFrame([row_data], columns=gb_cols)
 
