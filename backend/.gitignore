@@ -37,6 +37,9 @@ ml_models/*
 *.onnx
 *.pt
 *.pth
+!models/Future Forecast/transaction_forecast_model.pkl
+!models/Future Forecast/quantity_forecast_model.pkl
+!models/bundle_recommendation/bundle_recommendation_model.joblib
 
 # OS and editor files
 .DS_Store
