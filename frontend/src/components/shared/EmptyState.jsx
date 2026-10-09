@@ -1,17 +1,19 @@
-const EmptyState = ({ title = "No data available", message = "Upload a dataset first to begin.", actionText, onAction }) => (
-  <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center max-w-md mx-auto my-8 flex flex-col items-center">
-    <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 mb-6">
-      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0V9a2 2 0 00-2-2H6a2 2 0 00-2 2v2m0 4h.01m-6.99 3h3.99m-11.99-3h11.99"></path>
+const EmptyState = ({ title = "No Data Found", message = "There is nothing to display here.", actionText, onAction }) => (
+  <div className="flex flex-col items-center justify-center py-20 gap-5 animate-fade-in">
+    <div
+      className="w-20 h-20 rounded-2xl flex items-center justify-center"
+      style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.15)', boxShadow: '0 0 30px rgba(99,102,241,0.07)' }}
+    >
+      <svg className="w-9 h-9" style={{ color: 'rgba(99,102,241,0.5)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
       </svg>
     </div>
-    <h3 className="text-base font-bold text-slate-800">{title}</h3>
-    <p className="mt-2 text-xs text-slate-400 max-w-xs">{message}</p>
+    <div className="text-center max-w-xs">
+      <h3 className="text-base font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{title}</h3>
+      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{message}</p>
+    </div>
     {actionText && onAction && (
-      <button
-        onClick={onAction}
-        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-xs px-5 py-3 shadow-md shadow-emerald-500/10 transition-all duration-200"
-      >
+      <button onClick={onAction} className="btn-primary" style={{ height: '2.25rem', padding: '0 1.25rem', fontSize: '0.75rem' }}>
         {actionText}
       </button>
     )}

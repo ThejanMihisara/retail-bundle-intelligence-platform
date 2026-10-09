@@ -22,3 +22,21 @@ export const getCategoryForecast = (category, months = 6) =>
 
 export const getForecastSummary = () =>
   axios.get(`${BASE_URL}/forecast/summary`, { headers: authHeaders() });
+
+export const getFutureForecast = (params = {}) =>
+  axios.get(`${BASE_URL}/forecast/future`, {
+    headers: authHeaders(),
+    params,
+  });
+
+export const getActualVsPredicted = (params = {}) =>
+  axios.get(`${BASE_URL}/forecast/actual-vs-predicted`, {
+    headers: authHeaders(),
+    params,
+  });
+
+export const getComparisonDefaults = () =>
+  axios.get(`${BASE_URL}/forecast/comparison-defaults`, {
+    headers: authHeaders(),
+  });
+

@@ -3,10 +3,19 @@ import BASE_URL from "../config/api";
 import authHeaders from "./http";
 
 export const getOverview = () =>
+  axios.get(`${BASE_URL}/dashboard/sales-overview`, { headers: authHeaders() });
+
+export const getFullOverview = () =>
   axios.get(`${BASE_URL}/dashboard/overview`, { headers: authHeaders() });
 
 export const getMonthlySales = () =>
   axios.get(`${BASE_URL}/dashboard/monthly-sales`, { headers: authHeaders() });
+
+export const getSalesTimeseries = (params = {}) =>
+  axios.get(`${BASE_URL}/dashboard/sales-timeseries`, {
+    headers: authHeaders(),
+    params,
+  });
 
 export const getCategoryPerformance = () =>
   axios.get(`${BASE_URL}/dashboard/category-performance`, { headers: authHeaders() });

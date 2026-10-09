@@ -1,123 +1,309 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import axios from "axios";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import EmptyState from "../../components/shared/EmptyState";
-import { getBundles, getBundlesSummary, recommendBundles } from "../../services/bundleService";
+import { getBundlePeriodAnalysis } from "../../services/bundleService";
+
+const card = {
+  backgroundColor: 'var(--card-bg)',
+  border: '1px solid var(--card-border)',
+  borderRadius: '1rem',
+  backdropFilter: 'blur(10px)',
+  boxShadow: 'var(--card-shadow)',
+};
+
+const formatDate = (date) => {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const parseDate = (dateStr) => new Date(`${dateStr}T00:00:00`);
+
+const getWeekRange = (dateStr) => {
+  const base = parseDate(dateStr);
+  const offset = (base.getDay() + 6) % 7;
+  const start = new Date(base);
+  start.setDate(base.getDate() - offset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return [formatDate(start), formatDate(end)];
+};
+
+const getMonthRange = (dateStr) => {
+  const base = parseDate(dateStr);
+  const start = new Date(base.getFullYear(), base.getMonth(), 1);
+  const end = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  return [formatDate(start), formatDate(end)];
+};
+
+const APPROVED_BUNDLES_STORAGE_KEY = "bundlemind_approved_bundles";
 
 const BundlesPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Selected Date and Period Type from URL, with defaults
+  const periodType = searchParams.get("period_type") || "day";
+  const targetDate = searchParams.get("target_date") || formatDate(new Date());
+  const defaultRange = periodType === "month" ? getMonthRange(targetDate) : getWeekRange(targetDate);
+  const startDateParam = searchParams.get("start_date") || defaultRange[0];
+  const endDateParam = searchParams.get("end_date") || defaultRange[1];
+  const searchParam = searchParams.get("search") || "";
+  const categoryParam = searchParams.get("category") || "";
+  const movementParam = searchParams.get("movement") || "";
+  const minLiftParam = searchParams.get("min_lift") || "";
+  const minConfidenceParam = searchParams.get("min_confidence") || "";
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
+
+  // Local state for debouncing search input
+  const [searchInput, setSearchInput] = useState(searchParam);
+
+  // API states
   const [bundles, setBundles] = useState([]);
   const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const [approvedBundles, setApprovedBundles] = useState(new Set());
-
-  // Filters
-  const [searchQuery, setSearchQuery] = useState("");
-  const [page, setPage] = useState(1);
+  const [periods, setPeriods] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const fetchSummary = () => {
-    getBundlesSummary()
-      .then((res) => setSummary(res.data))
-      .catch(() => toast.error("Failed to load bundle summary metrics."));
+  // Approved bundles set
+  const [approvedBundles, setApprovedBundles] = useState(() => {
+    try {
+      const saved = localStorage.getItem(APPROVED_BUNDLES_STORAGE_KEY);
+      return new Set(saved ? JSON.parse(saved) : []);
+    } catch {
+      return new Set();
+    }
+  });
+
+  // Cancel token reference to cancel stale requests
+  const cancelTokenRef = useRef(null);
+
+  const updateParams = (newParams) => {
+    const updated = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([k, v]) => {
+      if (v === null || v === undefined || v === "") {
+        updated.delete(k);
+      } else {
+        updated.set(k, String(v));
+      }
+    });
+    // Reset to page 1 if changing filters, unless explicitly setting page
+    if (!newParams.hasOwnProperty("page")) {
+      updated.set("page", "1");
+    }
+    setSearchParams(updated);
   };
 
-  const fetchBundlesData = (isSearch = false) => {
-    setSearching(true);
-    
-    if (isSearch && searchQuery.trim()) {
-      recommendBundles(searchQuery.trim())
-        .then((res) => {
-          setBundles(res.data);
-          setTotalRecords(res.data.length);
-        })
-        .catch(() => toast.error("Failed to fetch product-specific recommendations."))
-        .finally(() => {
-          setSearching(false);
-          setLoading(false);
-        });
-    } else {
-      const params = {
-        page,
-        limit: 10,
-        ...(searchQuery && { search: searchQuery })
-      };
+  const handleToday = () => {
+    const today = formatDate(new Date());
+    if (periodType === "day") {
+      updateParams({ target_date: today, start_date: "", end_date: "" });
+      return;
+    }
+    const [start, end] = periodType === "week" ? getWeekRange(today) : getMonthRange(today);
+    updateParams({ target_date: end, start_date: start, end_date: end });
+  };
 
-      getBundles(params)
-        .then((res) => {
-          setBundles(res.data.data);
-          setTotalRecords(res.data.total);
-        })
-        .catch(() => toast.error("Failed to load recommended bundles."))
-        .finally(() => {
-          setSearching(false);
-          setLoading(false);
-        });
+  const handlePrevPeriod = () => {
+    const d = parseDate(periodType === "day" ? targetDate : endDateParam);
+    if (isNaN(d.getTime())) return;
+    if (periodType === "day") {
+      d.setDate(d.getDate() - 1);
+      updateParams({ target_date: formatDate(d) });
+    } else if (periodType === "week") {
+      d.setDate(d.getDate() - 7);
+      const [start, end] = getWeekRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
+    } else if (periodType === "month") {
+      d.setMonth(d.getMonth() - 1);
+      const [start, end] = getMonthRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
     }
   };
 
-  useEffect(() => {
-    fetchSummary();
-  }, []);
-
-  useEffect(() => {
-    fetchBundlesData(false);
-  }, [page]);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setPage(1);
-    fetchBundlesData(true);
+  const handleNextPeriod = () => {
+    const d = parseDate(periodType === "day" ? targetDate : endDateParam);
+    if (isNaN(d.getTime())) return;
+    if (periodType === "day") {
+      d.setDate(d.getDate() + 1);
+      updateParams({ target_date: formatDate(d) });
+    } else if (periodType === "week") {
+      d.setDate(d.getDate() + 7);
+      const [start, end] = getWeekRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
+    } else if (periodType === "month") {
+      d.setMonth(d.getMonth() + 1);
+      const [start, end] = getMonthRange(formatDate(d));
+      updateParams({ target_date: end, start_date: start, end_date: end });
+    }
   };
 
   const handleClearFilters = () => {
-    setSearchQuery("");
-    setPage(1);
-    // Directly fetch without query
-    setSearching(true);
-    getBundles({ page: 1, limit: 10 })
-      .then((res) => {
-        setBundles(res.data.data);
-        setTotalRecords(res.data.total);
-      })
-      .finally(() => setSearching(false));
-  };
-
-  const handleApprove = (bundleId) => {
-    setApprovedBundles((prev) => {
-      const updated = new Set(prev);
-      if (updated.has(bundleId)) {
-        updated.delete(bundleId);
-        toast.success(`Bundle #${bundleId} removed from approvals.`);
-      } else {
-        updated.add(bundleId);
-        toast.success(`Bundle #${bundleId} approved for POS promotion!`);
-      }
-      return updated;
+    setSearchInput("");
+    setSearchParams({
+      period_type: "day",
+      target_date: formatDate(new Date()),
+      page: "1"
     });
   };
 
-  const formatCurrency = (value) => {
-    return "Rs. " + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  const handlePeriodTypeChange = (mode) => {
+    if (mode === "day") {
+      updateParams({ period_type: mode, target_date: targetDate, start_date: "", end_date: "" });
+      return;
+    }
+    const [start, end] = mode === "week" ? getWeekRange(targetDate) : getMonthRange(targetDate);
+    updateParams({ period_type: mode, target_date: end, start_date: start, end_date: end });
   };
+
+  const handleRangeStartChange = (value) => {
+    updateParams({ start_date: value });
+  };
+
+  const handleRangeEndChange = (value) => {
+    updateParams({ end_date: value, target_date: value });
+  };
+
+  const handleApprove = (bundleId) => {
+    const wasApproved = approvedBundles.has(bundleId);
+    const updated = new Set(approvedBundles);
+    if (updated.has(bundleId)) {
+      updated.delete(bundleId);
+    } else {
+      updated.add(bundleId);
+    }
+    setApprovedBundles(updated);
+    localStorage.setItem(APPROVED_BUNDLES_STORAGE_KEY, JSON.stringify([...updated]));
+    toast.success(
+      wasApproved
+        ? `Bundle #${bundleId} removed from approvals.`
+        : `Bundle #${bundleId} approved for POS promotion!`,
+      { id: `bundle-approval-${bundleId}` }
+    );
+  };
+
+  const formatCurrency = (value) => {
+    return "Rs. " + new Intl.NumberFormat('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  };
+
+  const formatPercent = (value) => `${(value * 100).toFixed(2)}%`;
+  const formatLift = (value) => `${value.toFixed(2)}x`;
+  const escapeCsvCell = (value) => {
+    const text = String(value ?? "");
+    return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+
+  const fetchPeriodAnalysis = useCallback(() => {
+    if (periodType !== "day") {
+      if (!startDateParam || !endDateParam) {
+        toast.error("Please select both start and end dates.");
+        return;
+      }
+      if (startDateParam > endDateParam) {
+        toast.error("Start date must be on or before the end date.");
+        return;
+      }
+    }
+
+    setLoading(true);
+    setError(false);
+
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel("Stale request cancelled.");
+    }
+    const requestSource = axios.CancelToken.source();
+    cancelTokenRef.current = requestSource;
+
+    const params = {
+      period_type: periodType,
+      target_date: periodType === "day" ? targetDate : endDateParam,
+      page: pageParam,
+      limit: 12,
+      ...(periodType !== "day" && { start_date: startDateParam, end_date: endDateParam }),
+      ...(searchParam && { search: searchParam }),
+      ...(categoryParam && { category: categoryParam }),
+      ...(movementParam && { movement: movementParam }),
+      ...(minLiftParam && { min_lift: parseFloat(minLiftParam) }),
+      ...(minConfidenceParam && { min_confidence: parseFloat(minConfidenceParam) }),
+    };
+
+    getBundlePeriodAnalysis(params, { cancelToken: requestSource.token })
+      .then(res => {
+        setBundles(res.data.data || []);
+        setSummary(res.data.summary || null);
+        setPeriods(res.data.periods || []);
+        setTotalRecords(res.data.total || 0);
+      })
+      .catch(err => {
+        if (axios.isCancel(err)) {
+          return;
+        }
+        console.error(err);
+        setError(true);
+        toast.error("Failed to load bundle recommendations.");
+      })
+      .finally(() => {
+        if (cancelTokenRef.current === requestSource && !requestSource.token.reason) {
+          setLoading(false);
+        }
+      });
+  }, [periodType, targetDate, startDateParam, endDateParam, pageParam, searchParam, categoryParam, movementParam, minLiftParam, minConfidenceParam]);
+
+  // Sync debounced search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (searchInput !== searchParam) {
+        updateParams({ search: searchInput });
+      }
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchInput, searchParam]);
+
+  // Sync local searchInput state if URL parameter changes directly
+  useEffect(() => {
+    setSearchInput(searchParam);
+  }, [searchParam]);
+
+  // Trigger analysis call
+  useEffect(() => {
+    fetchPeriodAnalysis();
+  }, [fetchPeriodAnalysis]);
+
+  useEffect(() => {
+    return () => {
+      if (cancelTokenRef.current) {
+        cancelTokenRef.current.cancel("Bundle page unmounted.");
+      }
+    };
+  }, []);
 
   const downloadList = () => {
     if (bundles.length === 0) return;
-    const csvContent = [
-      "Bundle ID,Product IDs,Product Names,Expected Lift,Confidence,Support,Estimated Revenue,Estimated Profit,Status",
-      ...bundles.map((b) => {
-        const prodIds = b.products.map(p => p.product_id).join(";");
-        const prodNames = b.products.map(p => p.product_name).join(" + ");
-        const status = approvedBundles.has(b.bundle_id) ? "Approved" : "Pending";
-        return `${b.bundle_id},"${prodIds}","${prodNames}",${b.lift.toFixed(2)},${b.confidence.toFixed(4)},${b.support.toFixed(4)},${b.estimated_revenue.toFixed(2)},${b.estimated_profit.toFixed(2)},${status}`;
-      })
-    ].join("\n");
-    
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const headers = ["Rank", "Bundle ID", "Product IDs", "Product Names", "Support", "Confidence", "Lift", "Normal Price", "Discount %", "Promo Price", "Promo Profit", "Promo Margin", "Status"];
+    const rows = bundles.map(b => [
+      b.bundle_rank,
+      b.bundle_id,
+      b.products.map(p => p.product_id).join(", "),
+      b.products.map(p => p.product_name).join(" + "),
+      formatPercent(b.support),
+      formatPercent(b.confidence),
+      b.lift.toFixed(2),
+      (b.normal_bundle_retail_price ?? b.estimated_revenue).toFixed(2),
+      formatPercent(b.suggested_discount_pct ?? 0),
+      (b.promo_bundle_price ?? b.estimated_revenue).toFixed(2),
+      (b.promo_bundle_profit ?? b.estimated_profit).toFixed(2),
+      formatPercent(b.promo_profit_margin ?? 0),
+      approvedBundles.has(b.bundle_id) ? "Approved" : "Pending",
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(escapeCsvCell).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" }));
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "bundlemind_promo_bundles.csv");
+    link.setAttribute("download", `bundlemind_recommendations_${periodType}_${targetDate}.csv`);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -125,194 +311,542 @@ const BundlesPage = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return <LoadingSpinner label="Running FP-Growth market basket analytics..." fullPage />;
-  }
+  const downloadListPDF = () => {
+    if (bundles.length === 0) {
+      return toast.error("No bundle recommendations available to export.");
+    }
+
+    const pageWidth = 842;
+    const pageHeight = 595;
+    const margin = 34;
+    const columns = [
+      { title: "Rank", x: 34 },
+      { title: "Bundle ID", x: 75 },
+      { title: "Included Products", x: 145 },
+      { title: "Lift", x: 445 },
+      { title: "Conf.", x: 495 },
+      { title: "FP Supp.", x: 575 },
+      { title: "Promo Profit", x: 645 },
+      { title: "Status", x: 745 },
+    ];
+
+    const pdfText = (value) =>
+      String(value ?? "")
+        .replace(/[^\x20-\x7E]/g, " ")
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+
+    const fitText = (value, maxChars) => {
+      const text = String(value ?? "");
+      return text.length > maxChars ? `${text.slice(0, maxChars - 3)}...` : text;
+    };
+
+    const textLine = (x, y, text, size = 10, font = "F1") =>
+      `BT /${font} ${size} Tf ${x} ${y} Td (${pdfText(text)}) Tj ET\n`;
+
+    const pages = [];
+    const dateRangeStr = periodType === "day" ? targetDate : `${startDateParam} to ${endDateParam}`;
+
+    let currentPageStream = "";
+    let y = pageHeight - margin;
+
+    const startNewPage = (isFirstPage = false) => {
+      if (!isFirstPage) {
+        currentPageStream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+        pages.push(currentPageStream);
+        currentPageStream = "";
+      }
+      y = pageHeight - margin;
+
+      currentPageStream += textLine(margin, y, "BundleMind Promotional Bundle Recommendations", 16, "F2");
+      y -= 18;
+      currentPageStream += textLine(margin, y, `${periodType.toUpperCase()} report for period: ${dateRangeStr} (Generated: ${new Date().toLocaleString()})`, 9);
+      y -= 22;
+
+      if (isFirstPage && summary) {
+        currentPageStream += textLine(margin, y, `Total Bundles: ${summary.recommended_bundles}`, 10, "F2");
+        currentPageStream += textLine(160, y, `Avg Lift: ${summary.average_lift.toFixed(2)}x`, 10, "F2");
+        currentPageStream += textLine(270, y, `Avg Confidence: ${Math.round(summary.average_confidence * 100)}%`, 10, "F2");
+        currentPageStream += textLine(410, y, `Promo Revenue: ${formatCurrency(summary.expected_revenue !== undefined ? summary.expected_revenue : summary.average_revenue)}`, 10, "F2");
+        currentPageStream += textLine(600, y, `Promo Profit: ${formatCurrency(summary.expected_profit !== undefined ? summary.expected_profit : summary.average_profit)}`, 10, "F2");
+        y -= 22;
+      }
+
+      currentPageStream += "0.9 0.95 0.93 rg\n";
+      currentPageStream += `${margin} ${y - 5} 774 20 re f\n`;
+      currentPageStream += "0 0 0 rg\n";
+      columns.forEach((column) => {
+        currentPageStream += textLine(column.x, y, column.title, 9, "F2");
+      });
+      y -= 20;
+    };
+
+    // Initialize first page
+    startNewPage(true);
+
+    bundles.forEach((b) => {
+      const rowLines = b.products.length;
+      const rowHeight = rowLines * 12 + 10;
+
+      if (y - rowHeight < 40) {
+        startNewPage(false);
+      }
+
+      currentPageStream += textLine(34, y, `#${b.bundle_rank}`, 8.5);
+      currentPageStream += textLine(75, y, `#${b.bundle_id}`, 8.5);
+      currentPageStream += textLine(445, y, `${b.lift.toFixed(2)}x`, 8.5);
+      currentPageStream += textLine(495, y, `${(b.confidence * 100).toFixed(1)}%`, 8.5);
+      currentPageStream += textLine(575, y, `${(b.support * 100).toFixed(2)}%`, 8.5);
+      currentPageStream += textLine(645, y, formatCurrency(b.promo_bundle_profit ?? b.estimated_profit), 8.5);
+      currentPageStream += textLine(745, y, approvedBundles.has(b.bundle_id) ? "Approved" : "Pending", 8.5);
+
+      b.products.forEach((p, idx) => {
+        const text = idx === 0 ? p.product_name : `+ ${p.product_name}`;
+        currentPageStream += textLine(145, y - idx * 12, fitText(text, 52), 8.5);
+      });
+
+      const dividerY = y - rowLines * 12 - 3;
+      currentPageStream += "0.85 0.85 0.85 RG\n0.3 w\n";
+      currentPageStream += `${margin} ${dividerY} m ${pageWidth - margin} ${dividerY} l S\n0 G\n`;
+
+      y -= rowHeight;
+    });
+
+    currentPageStream += textLine(pageWidth - 95, 24, `Page ${pages.length + 1}`, 8);
+    pages.push(currentPageStream);
+
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
+    ];
+    const pageRefs = [];
+    pages.forEach((stream) => {
+      const pageObjectNumber = objects.length + 1;
+      const contentObjectNumber = pageObjectNumber + 1;
+      pageRefs.push(`${pageObjectNumber} 0 R`);
+      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`);
+      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
+    });
+    objects[1] = `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pageRefs.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+    objects.forEach((object, index) => {
+      offsets.push(pdf.length);
+      pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    });
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+    offsets.slice(1).forEach((offset) => {
+      pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+    });
+    pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+    const blob = new Blob([pdf], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bundlemind_recommendations_${periodType}_${targetDate}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const summaryItems = summary ? [
+    { label: 'Recommended Bundles', value: summary.recommended_bundles.toLocaleString(), badge: 'Total', badgeColor: 'var(--accent-indigo)', badgeBg: 'rgba(99,102,241,0.12)', badgeBorder: 'rgba(99,102,241,0.25)' },
+    { label: 'Average Lift', value: `${summary.average_lift.toFixed(2)}x`, badge: 'Lift', badgeColor: 'var(--accent-cyan-text)', badgeBg: 'rgba(6,182,212,0.12)', badgeBorder: 'rgba(6,182,212,0.25)', numColor: 'var(--accent-cyan-text)' },
+    { label: 'Average Confidence', value: `${Math.round(summary.average_confidence * 100)}%`, badge: 'Confidence', badgeColor: 'var(--accent-green-text)', badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.25)', numColor: 'var(--accent-green-text)' },
+    { label: 'Promo Revenue', value: formatCurrency(summary.expected_revenue !== undefined ? summary.expected_revenue : summary.average_revenue), badge: 'Revenue', badgeColor: 'var(--text-body-strong)', badgeBg: 'var(--tag-bg)', badgeBorder: 'var(--tag-border)' },
+    { label: 'Promo Profit', value: formatCurrency(summary.expected_profit !== undefined ? summary.expected_profit : summary.average_profit), badge: 'Profit', badgeColor: 'var(--accent-green-text)', badgeBg: 'rgba(16,185,129,0.12)', badgeBorder: 'rgba(16,185,129,0.25)', numColor: 'var(--accent-green-text)' },
+  ] : [];
 
   return (
-    <div className="space-y-8 flex-1 flex flex-col">
-      {/* Top summary widgets */}
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 font-semibold">Total Recommended Bundles</p>
-              <h3 className="text-2xl font-extrabold text-slate-800 mt-1">{summary.total_bundles.toLocaleString()}</h3>
+    <div className="space-y-6 flex-1 flex flex-col animate-fade-in">
+      {/* Control Panel Toolbar */}
+      <div className="rounded-2xl p-6 flex flex-col gap-4" style={card}>
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          {/* Segmented Picker & Date controls */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex p-1 rounded-xl gap-1" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+              {["day", "week", "month"].map(mode => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => handlePeriodTypeChange(mode)}
+                  className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all capitalize"
+                  style={periodType === mode
+                    ? { background: 'linear-gradient(135deg, rgba(16,185,129,0.22), rgba(6,182,212,0.14))', color: 'var(--accent-green-text)', border: '1px solid rgba(16,185,129,0.25)' }
+                    : { color: 'var(--text-body)', border: '1px solid transparent' }}
+                >
+                  {mode === "day" ? "Day" : mode === "week" ? "Week" : "Month"}
+                </button>
+              ))}
             </div>
-            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">FP-Growth</span>
-          </div>
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 font-semibold">Average Basket Lift</p>
-              <h3 className="text-2xl font-extrabold text-emerald-500 mt-1">{summary.avg_lift.toFixed(2)}x</h3>
+
+            {periodType === "day" ? (
+              <input
+                type="date"
+                className="input-dark text-xs"
+                style={{ width: '150px' }}
+                value={targetDate}
+                onChange={(e) => updateParams({ target_date: e.target.value })}
+              />
+            ) : (
+              <>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    Start Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark text-xs"
+                    style={{ width: '150px' }}
+                    value={startDateParam}
+                    onChange={(e) => handleRangeStartChange(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-label)' }}>
+                    End Date
+                  </span>
+                  <input
+                    type="date"
+                    className="input-dark text-xs"
+                    style={{ width: '150px' }}
+                    value={endDateParam}
+                    onChange={(e) => handleRangeEndChange(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-1.5">
+              <button onClick={handlePrevPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Previous period" aria-label="Previous period">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button onClick={handleToday} className="theme-toggle font-bold text-xs px-3 hover:scale-105 active:scale-95">
+                Today
+              </button>
+              <button onClick={handleNextPeriod} className="theme-toggle hover:scale-105 active:scale-95" title="Next period" aria-label="Next period">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">Signal</span>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 font-semibold">Average Confidence</p>
-              <h3 className="text-2xl font-extrabold text-blue-500 mt-1">{Math.round(summary.avg_confidence * 100)}%</h3>
+
+          {/* Text and Select Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              type="text"
+              placeholder="Search products..."
+              className="input-dark text-xs"
+              style={{ width: '160px' }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+
+            <select
+              className="input-dark text-xs"
+              style={{ width: '140px' }}
+              value={categoryParam}
+              onChange={(e) => updateParams({ category: e.target.value })}
+            >
+              <option value="">All Categories</option>
+              <option value="Baby & Kids">Baby & Kids</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Cleaning & Household">Cleaning & Household</option>
+              <option value="Cooking Essentials">Cooking Essentials</option>
+              <option value="Dairy & Chilled">Dairy & Chilled</option>
+              <option value="General Grocery">General Grocery</option>
+              <option value="Health & Medicine">Health & Medicine</option>
+              <option value="Meat, Fish & Frozen">Meat, Fish & Frozen</option>
+              <option value="Personal Care">Personal Care</option>
+              <option value="Snacks & Confectionery">Snacks & Confectionery</option>
+              <option value="Staples & Dry Groceries">Staples & Dry Groceries</option>
+              <option value="Stationery">Stationery</option>
+            </select>
+
+            <select
+              className="input-dark text-xs"
+              style={{ width: '140px' }}
+              value={movementParam}
+              onChange={(e) => updateParams({ movement: e.target.value })}
+            >
+              <option value="">All Movements</option>
+              <option value="Fast">Fast Moving</option>
+              <option value="Medium">Medium Moving</option>
+              <option value="Slow">Slow Moving</option>
+            </select>
+
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="Min Lift"
+              className="input-dark text-xs"
+              style={{ width: '90px' }}
+              value={minLiftParam}
+              onChange={(e) => updateParams({ min_lift: e.target.value })}
+            />
+
+            <div className="flex gap-1.5 ml-auto xl:ml-0">
+              <button onClick={handleClearFilters} className="theme-toggle text-xs px-3 font-bold hover:bg-[rgba(239,68,68,0.1)] hover:text-red-400 hover:border-red-400" title="Clear filters">
+                Clear
+              </button>
+              <button onClick={fetchPeriodAnalysis} className="theme-toggle" title="Refresh recommendations" aria-label="Refresh recommendations">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v6h6M20 20v-6h-6M5.6 15A7 7 0 0018 17.4M18.4 9A7 7 0 006 6.6" />
+                </svg>
+              </button>
             </div>
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">Support</span>
           </div>
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 font-semibold">Avg Bundle Margin</p>
-              <h3 className="text-2xl font-extrabold text-slate-800 mt-1">{formatCurrency(summary.avg_profit)}</h3>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full">Financial</span>
+        </div>
+      </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="flex-1 flex flex-col items-center justify-center space-y-4 py-20 rounded-2xl" style={card}>
+          <div className="text-red-400">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
           </div>
+          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Failed to Load Recommendations</h3>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Could not fetch period recommendations. Make sure the backend ML model is correctly loaded.</p>
+          <button onClick={fetchPeriodAnalysis} className="btn-primary">
+            Retry
+          </button>
         </div>
       )}
 
-      {/* Toolbar Filter */}
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-base font-bold text-slate-800">Explore Retail Recommendations</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Filter rules by specific product names or codes</p>
-        </div>
-        
-        <form onSubmit={handleSearchSubmit} className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Type Product Name or Code (e.g. Sugar)..."
-            className="h-10 w-80 rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-xs outline-none focus:border-emerald-400 focus:bg-white transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="h-10 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs shadow-md shadow-emerald-500/10 transition-all active:scale-95"
-          >
-            Recommend
-          </button>
-          <button
-            type="button"
-            onClick={handleClearFilters}
-            className="h-10 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold text-xs transition-colors"
-          >
-            Clear
-          </button>
-        </form>
-      </div>
+      {/* Loading state */}
+      {!error && loading && (
+        <LoadingSpinner label="Loading bundle recommendations..." fullPage />
+      )}
 
-      {/* Grid of Bundle Cards */}
-      <div className="flex-1 flex flex-col">
-        {searching ? (
-          <div className="text-center py-20 flex-1">
-            <LoadingSpinner label="Searching recommendations..." />
-          </div>
-        ) : bundles.length === 0 ? (
-          <div className="flex-1">
-            <EmptyState title="No bundles found" message="Ensure the search product exists or remove search parameters." />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {bundles.map((bundle) => {
-              const isApproved = approvedBundles.has(bundle.bundle_id);
-              return (
-                <div 
-                  key={bundle.bundle_id} 
-                  className={`rounded-2xl border bg-white p-6 shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md ${
-                    isApproved ? "border-emerald-300 ring-2 ring-emerald-500/5 bg-emerald-50/10" : "border-slate-100"
-                  }`}
-                >
-                  <div>
-                    {/* Header */}
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <span className="text-xs font-bold text-slate-400">FP-Growth Output</span>
-                        <h3 className="text-lg font-extrabold text-slate-800 mt-0.5">Bundle #{bundle.bundle_id}</h3>
+      {/* Main recommendation display */}
+      {!error && !loading && (
+        <div className="space-y-6 flex-1 flex flex-col">
+          {/* Summary Cards */}
+          {summary && (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              {summaryItems.map(s => (
+                <div key={s.label} className="glass-card p-4 flex flex-col justify-between transition-all duration-300 hover:-translate-y-0.5 h-[85px]"
+                  style={{ '--glow-color': 'rgba(255,255,255,0.01)' }}>
+                  <div className="flex justify-between items-start gap-1">
+                    <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>{s.label}</p>
+                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded"
+                      style={{ background: s.badgeBg, color: s.badgeColor }}>{s.badge}</span>
+                  </div>
+                  <h3 className="text-lg font-black mt-1" style={{ color: s.numColor || 'var(--text-primary)' }}>{s.value}</h3>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {bundles.length === 0 ? (
+            <div className="flex-1">
+              <EmptyState title="No Bundle Recommendations Match" message="Try adjusting your filters or date to see historical purchasing associations." />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {bundles.map(bundle => {
+                const isApproved = approvedBundles.has(bundle.bundle_id);
+                return (
+                  <div key={bundle.bundle_id} className="glass-card p-6 flex flex-col justify-between transition-all duration-300"
+                    style={{
+                      background: isApproved ? 'rgba(16,185,129,0.06)' : 'var(--card-bg)',
+                      border: isApproved ? '1px solid rgba(16,185,129,0.25)' : '1px solid var(--card-border)',
+                      boxShadow: isApproved ? '0 0 20px rgba(16,185,129,0.06)' : 'var(--card-shadow)',
+                      '--glow-color': isApproved ? 'rgba(16,185,129,0.05)' : 'transparent'
+                    }}>
+                    <div className="space-y-4">
+                      {/* Bundle Header info */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                            Rank #{bundle.bundle_rank}
+                          </p>
+                          <h3 className="text-base font-extrabold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                            Bundle #{bundle.bundle_id}
+                          </h3>
+                        </div>
                       </div>
-                      
-                      {/* Metric Badges */}
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-50 text-emerald-600">
-                          {bundle.lift.toFixed(2)}x Lift
-                        </span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase">
-                          Conf: {Math.round(bundle.confidence * 100)}% | Supp: {bundle.support.toFixed(4)}
-                        </span>
+
+                      {/* Association Metrics Row */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2.5 rounded-xl text-center" style={{ background: 'var(--tag-bg)', border: '1px solid var(--tag-border)' }}>
+                        <div>
+                          <p className="text-[8px] font-bold uppercase text-[var(--text-muted)]">Lift</p>
+                          <p className="text-[11px] font-black" style={{ color: 'var(--accent-cyan-text)' }}>{formatLift(bundle.lift)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-bold uppercase text-[var(--text-muted)]">Confidence</p>
+                          <p className="text-[11px] font-black" style={{ color: 'var(--text-primary)' }}>{formatPercent(bundle.confidence)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-bold uppercase text-[var(--text-muted)]">FP Supp.</p>
+                          <p className="text-[11px] font-black" style={{ color: 'var(--accent-green-text)' }}>{formatPercent(bundle.support)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-bold uppercase text-[var(--text-muted)]">Pair Supp.</p>
+                          <p className="text-[11px] font-black text-purple-300">{formatPercent(bundle.pair_support)}</p>
+                        </div>
                       </div>
+
+                      {/* Seasonal Score and metadata details */}
+                      <div className="flex justify-between items-center text-[10px] px-1 text-[var(--text-muted)]">
+                        <span>Seasonal Score: <strong className="text-indigo-300 font-extrabold">{bundle.seasonal_demand_score.toFixed(4)}</strong></span>
+                      </div>
+
+                      {/* Products List */}
+                      <div className="space-y-2">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-very-muted)]">
+                          Included Products ({bundle.product_count}):
+                        </p>
+                        <div className="space-y-1.5">
+                          {bundle.products.map(product => {
+                            let badgeClass = "badge-slate";
+                            if (product.movement_label === "Fast Moving") badgeClass = "badge-green";
+                            else if (product.movement_label === "Medium Moving") badgeClass = "badge-amber";
+                            else if (product.movement_label === "Slow Moving") badgeClass = "badge-red";
+
+                            return (
+                              <div key={product.product_id} className="flex items-center justify-between text-[11px] py-1 px-2 rounded-lg bg-[var(--row-hover)] hover:bg-[rgba(255,255,255,0.02)] transition-all">
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className="font-extrabold truncate" style={{ color: 'var(--text-primary)' }} title={product.product_name}>
+                                    {product.product_name}
+                                  </span>
+                                  <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded flex-shrink-0 ${badgeClass}`}>
+                                    {product.movement_label}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-semibold text-[var(--text-muted)] ml-2 flex-shrink-0">
+                                  {formatCurrency(product.retail_price)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                     </div>
 
-                    {/* Product List */}
-                    <div className="space-y-2 mb-6">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Included Products ({bundle.product_count}):</p>
-                      <div className="grid grid-cols-1 gap-2 bg-slate-50/50 border border-slate-100 rounded-xl p-3">
-                        {bundle.products.map((p) => (
-                          <div key={p.product_id} className="flex items-center justify-between text-xs py-1">
-                            <span className="font-bold text-slate-700">{p.product_name}</span>
-                            <span className="text-[10px] text-slate-400 font-semibold uppercase">#{p.product_id}</span>
-                          </div>
-                        ))}
+                    <div className="mt-4 pt-4 space-y-4" style={{ borderTop: '1px solid var(--divider)' }}>
+                      {/* Financial info */}
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Normal Price</p>
+                          <p className="font-extrabold mt-0.5" style={{ color: 'var(--text-muted)' }}>{formatCurrency(bundle.normal_bundle_retail_price ?? bundle.estimated_revenue)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Discount</p>
+                          <p className="font-extrabold mt-0.5 text-[var(--accent-cyan-text)]">{formatPercent(bundle.suggested_discount_pct ?? 0)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Promo Price</p>
+                          <p className="font-extrabold mt-0.5" style={{ color: 'var(--text-primary)' }}>{formatCurrency(bundle.promo_bundle_price ?? bundle.estimated_revenue)}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[9px] font-semibold uppercase text-[var(--text-very-muted)]">Promo Profit</p>
+                          <p className="font-extrabold mt-0.5 text-[var(--accent-green-text)]">{formatCurrency(bundle.promo_bundle_profit ?? bundle.estimated_profit)}</p>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Financial Estimations */}
-                    <div className="grid grid-cols-2 gap-4 mb-6 border-t border-slate-100 pt-4">
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Est. Retail Price</p>
-                        <p className="text-sm font-bold text-slate-800">{formatCurrency(bundle.estimated_revenue)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-semibold uppercase">Est. Margin Contribution</p>
-                        <p className="text-sm font-extrabold text-emerald-600">{formatCurrency(bundle.estimated_profit)}</p>
-                      </div>
+                      {/* Action buttons */}
+                      <button onClick={() => handleApprove(bundle.bundle_id)}
+                        className="w-full font-bold text-xs py-2.5 rounded-xl transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 hover:bg-[var(--btn-ghost-bg-hover)]"
+                        style={isApproved ? { background: 'linear-gradient(135deg, var(--accent-green), var(--accent-cyan))', color: 'white', boxShadow: '0 4px 14px rgba(16,185,129,0.2)', border: 'none' }
+                          : { background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body)' }}>
+                        {isApproved ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Approved
+                          </>
+                        ) : "Approve POS Promotion"}
+                      </button>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
 
-                  {/* Actions */}
-                  <div className="flex gap-3 border-t border-slate-100 pt-4">
+          {/* Footer Controls / CSV Export */}
+          {bundles.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center p-4 rounded-2xl gap-4" style={card}>
+              <span className="text-[11px] font-bold uppercase" style={{ color: 'var(--text-very-muted)' }}>
+                Showing {Math.min(totalRecords, (pageParam - 1) * 12 + 1)} – {Math.min(totalRecords, pageParam * 12)} of {totalRecords} Recommendations
+              </span>
+              <div className="flex items-center gap-3">
+                {totalRecords > 12 && (
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleApprove(bundle.bundle_id)}
-                      className={`flex-1 font-bold text-xs py-3 rounded-xl border transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5 ${
-                        isApproved
-                          ? "bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500"
-                          : "bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200"
-                      }`}
+                      onClick={() => updateParams({ page: Math.max(1, pageParam - 1) })}
+                      disabled={pageParam === 1}
+                      className="px-4 py-2 font-semibold text-xs rounded-lg transition-all disabled:opacity-30 hover:bg-[var(--btn-ghost-bg-hover)]"
+                      style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body-strong)' }}
                     >
-                      {isApproved ? (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path>
-                          </svg>
-                          Approved
-                        </>
-                      ) : (
-                        "Approve Promotion"
-                      )}
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => updateParams({ page: Math.min(Math.ceil(totalRecords / 12), pageParam + 1) })}
+                      disabled={pageParam >= Math.ceil(totalRecords / 12)}
+                      className="px-4 py-2 font-semibold text-xs rounded-lg transition-all disabled:opacity-30 hover:bg-[var(--btn-ghost-bg-hover)]"
+                      style={{ background: 'var(--btn-ghost-bg)', border: '1px solid var(--btn-ghost-border)', color: 'var(--text-body-strong)' }}
+                    >
+                      Next
                     </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* List Action Buttons */}
-        {bundles.length > 0 && !searching && (
-          <div className="flex justify-between items-center mt-8 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="text-[11px] text-slate-400 font-bold uppercase pl-2">
-              Currently Auditing {bundles.length} Bundle Recommendations
-            </span>
-            <div className="flex gap-3">
-              <button 
-                onClick={downloadList}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-xs px-5 py-3 transition-all duration-200 active:scale-95"
-              >
-                Export CSV List
-              </button>
-              <button 
-                onClick={() => toast.success("Approved bundles synchronised with POS cash register.")}
-                className="flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-3 shadow-md shadow-indigo-600/10 transition-all duration-200 active:scale-95"
-              >
-                Push Approved to POS
-              </button>
+                )}
+                <details className="relative group">
+                  <summary className="list-none cursor-pointer text-xs font-bold px-5 py-2.5 rounded-xl border border-[var(--btn-ghost-border)] bg-[var(--btn-ghost-bg)] hover:bg-[var(--btn-ghost-bg-hover)] text-[var(--text-body-strong)] transition-all flex items-center gap-1.5 select-none">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export
+                    <svg className="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="absolute right-0 bottom-11 z-20 w-36 overflow-hidden rounded-xl border border-[var(--card-border)] bg-[var(--card-bg)] shadow-xl shadow-slate-900/10">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        downloadList();
+                        e.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                    >
+                      CSV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        downloadListPDF();
+                        e.currentTarget.closest("details")?.removeAttribute("open");
+                      }}
+                      className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-[var(--text-body-strong)] hover:bg-[var(--row-hover)] transition-colors"
+                    >
+                      PDF
+                    </button>
+                  </div>
+                </details>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 };

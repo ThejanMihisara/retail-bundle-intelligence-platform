@@ -1,18 +1,35 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { login as loginApi, register as registerApi } from "../../services/authService";
+import { login as loginApi } from "../../services/authService";
+import { submitAccessRequest } from "../../services/accessRequestService";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import authBg from "../../assets/auth-bg.png";
+import BrandLogo from "../../components/shared/BrandLogo";
 
-const inputClass = "h-11 w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-400 focus:bg-slate-800 transition-all duration-200";
+const inputClass = "h-11 w-full rounded-xl border px-4 text-sm outline-none focus:border-emerald-400 transition-all duration-200 auth-input";
 
-const AuthPage = () => {
-  const [tab, setTab] = useState("login");
+const ROLES = [
+  { value: "manager", label: "Manager - Full analytics access" },
+  { value: "analyst", label: "Analyst - Read-only analytics" },
+  { value: "viewer", label: "Viewer - Dashboard overview only" },
+];
+
+const AuthPage = ({ initialTab = "login" }) => {
+  const [tab, setTab] = useState(initialTab);
   const [loading, setLoading] = useState(false);
-  const [loginForm, setLoginForm] = useState({ email: "admin@bundlemind.com", password: "" });
-  const [registerForm, setRegisterForm] = useState({ fullName: "", email: "", password: "" });
+  const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [requestForm, setRequestForm] = useState({
+    name: "",
+    email: "",
+    requested_role: "analyst",
+    reason: "",
+  });
   const { login } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const submitLogin = async (event) => {
@@ -30,157 +47,211 @@ const AuthPage = () => {
     }
   };
 
-  const submitRegister = async (event) => {
+  const handleRequestChange = (field) => (event) => {
+    setRequestForm((prev) => ({ ...prev, [field]: event.target.value }));
+  };
+
+  const submitAccess = async (event) => {
     event.preventDefault();
+    if (!requestForm.name || !requestForm.email) {
+      toast.error("Name and email are required.");
+      return;
+    }
     setLoading(true);
     try {
-      await registerApi(registerForm.fullName, registerForm.email, registerForm.password);
-      toast.success("Account request submitted. Waiting for Administrator approval.");
-      setTab("login");
+      await submitAccessRequest(requestForm);
+      setRequestSubmitted(true);
+      toast.success("Access request submitted. An admin will review your request.");
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Registration failed. Try again.");
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === "string" ? detail : "Failed to submit request.");
     } finally {
       setLoading(false);
     }
   };
 
+  const showLogin = tab === "login";
+
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative background glows */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none"></div>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${authBg})` }}
+    >
+      <div className="absolute inset-0 bg-slate-950/45 pointer-events-none"></div>
+
+      <button
+        onClick={toggleTheme}
+        title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        className="absolute top-5 right-5 z-20 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200"
+        style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "white", backdropFilter: "blur(8px)" }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; }}
+      >
+        {theme === "dark" ? (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        )}
+      </button>
 
       <div className="w-full max-w-[480px] z-10">
-        {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-cyan-400 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-500/10">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-            </svg>
-          </div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">BundleMind</h1>
-          <p className="mt-2 text-sm text-slate-400 font-medium">supermarket predictive retail analytics portal</p>
+          <BrandLogo
+            size="lg"
+            subtitle="Supermarket Predictive Retail Analytics Portal"
+            centered
+            lightText
+            className="drop-shadow-[0_0_25px_rgba(255,255,255,0.35)]"
+          />
         </div>
 
-        {/* Tab Toggle */}
-        <div className="bg-slate-900 border border-slate-800 p-1.5 rounded-2xl flex mb-6">
-          <button 
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-              tab === "login" 
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/50" 
-                : "text-slate-400 hover:text-white"
-            }`} 
+        <div className="relative p-1 rounded-2xl flex mb-6 overflow-hidden backdrop-blur-md auth-tab-bg">
+          <div
+            className={`absolute top-1 bottom-1 w-[calc(50%-6px)] rounded-xl transition-all duration-300 ease-out auth-tab-active ${
+              showLogin ? "left-1.5" : "left-[calc(50%+4.5px)]"
+            }`}
+          />
+          <button
+            type="button"
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-colors duration-300 z-10 ${
+              showLogin ? "auth-tab-text-active" : "auth-tab-text-inactive hover:text-[var(--text-primary)]"
+            }`}
             onClick={() => setTab("login")}
           >
             Login Access
           </button>
-          <button 
-            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all duration-200 ${
-              tab === "register" 
-                ? "bg-slate-800 text-white shadow-sm border border-slate-700/50" 
-                : "text-slate-400 hover:text-white"
-            }`} 
-            onClick={() => setTab("register")}
+          <button
+            type="button"
+            className={`flex-1 py-3 text-xs font-bold rounded-xl transition-colors duration-300 z-10 ${
+              !showLogin ? "auth-tab-text-active" : "auth-tab-text-inactive hover:text-[var(--text-primary)]"
+            }`}
+            onClick={() => setTab("request")}
           >
             Request Access
           </button>
         </div>
 
-        {/* Login Tab */}
-        {tab === "login" ? (
-          <form onSubmit={submitLogin} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4">
+        {showLogin ? (
+          <form onSubmit={submitLogin} className="backdrop-blur-xl p-8 rounded-3xl shadow-2xl flex flex-col gap-4 animate-fade-in auth-card">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">Welcome Back</h2>
-              <p className="text-xs text-slate-400">Sign in to your manager intelligence console</p>
+              <h2 className="text-xl font-bold mb-1">Welcome Back</h2>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>Sign in to continue to BundleMind</p>
             </div>
-            
+
             <div className="flex flex-col gap-1.5 mt-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
-              <input 
-                className={inputClass} 
+              <label className="text-xs font-bold uppercase tracking-wider auth-label">Email Address</label>
+              <input
+                className={inputClass}
                 type="email"
-                placeholder="admin@bundlemind.com" 
-                value={loginForm.email} 
-                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} 
-                required
-              />
-            </div>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Password</label>
-              <input 
-                className={inputClass} 
-                type="password" 
-                placeholder="••••••••••••" 
-                value={loginForm.password} 
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} 
+                placeholder="you@company.com"
+                value={loginForm.email}
+                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                 required
               />
             </div>
 
-            <button 
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider auth-label">Password</label>
+              <input
+                className={inputClass}
+                type="password"
+                placeholder="************"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                required
+              />
+            </div>
+
+            <button
               type="submit"
               className="mt-4 h-12 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition-all flex items-center justify-center"
               disabled={loading}
             >
               {loading ? <LoadingSpinner label="Authenticating..." /> : "Sign In"}
             </button>
-            
-            <p className="text-[10px] text-center text-slate-500 mt-2">
-              Approved users only. Contact system administrator for access inquiries.
+
+            <p className="text-[10px] text-center mt-2" style={{ color: "var(--text-very-muted)" }}>
+              Approved users only.{" "}
+              <button type="button" onClick={() => setTab("request")} className="underline transition-colors hover:text-emerald-400" style={{ color: "var(--text-very-muted)" }}>
+                Request access
+              </button>{" "}
+              if you don't have an account.
             </p>
           </form>
         ) : (
-          /* Register Tab */
-          <form onSubmit={submitRegister} className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-3xl shadow-2xl flex flex-col gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-white mb-1">Create Manager Profile</h2>
-              <p className="text-xs text-slate-400">Submit access request for administrative approval</p>
-            </div>
+          <form onSubmit={submitAccess} className="backdrop-blur-xl p-8 rounded-3xl shadow-2xl flex flex-col gap-4 animate-fade-in auth-card">
+            {requestSubmitted ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 bg-emerald-500/10 border border-emerald-400/25">
+                  <svg className="w-8 h-8 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold mb-2">Request Submitted</h2>
+                <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+                  Your access request has been sent to the system administrator.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequestSubmitted(false);
+                    setTab("login");
+                  }}
+                  className="h-12 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition-all"
+                >
+                  Back to Login
+                </button>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <h2 className="text-xl font-bold mb-1">Request System Access</h2>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Fill in your details and an admin will review your request.</p>
+                </div>
 
-            <div className="flex flex-col gap-1.5 mt-2">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Name</label>
-              <input 
-                className={inputClass} 
-                type="text"
-                placeholder="John Doe" 
-                value={registerForm.fullName} 
-                onChange={(e) => setRegisterForm({ ...registerForm, fullName: e.target.value })} 
-                required
-              />
-            </div>
-            
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Work Email</label>
-              <input 
-                className={inputClass} 
-                type="email"
-                placeholder="manager@supermarket.com" 
-                value={registerForm.email} 
-                onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })} 
-                required
-              />
-            </div>
+                <div className="flex flex-col gap-1.5 mt-2">
+                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Full Name <span className="text-red-400">*</span></label>
+                  <input className={inputClass} type="text" placeholder="John Smith" value={requestForm.name} onChange={handleRequestChange("name")} required />
+                </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Create Password</label>
-              <input 
-                className={inputClass} 
-                type="password" 
-                placeholder="••••••••••••" 
-                value={registerForm.password} 
-                onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })} 
-                required
-              />
-            </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Email Address <span className="text-red-400">*</span></label>
+                  <input className={inputClass} type="email" placeholder="you@company.com" value={requestForm.email} onChange={handleRequestChange("email")} required />
+                </div>
 
-            <button 
-              type="submit"
-              className="mt-4 h-12 w-full rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-sm transition-all flex items-center justify-center"
-              disabled={loading}
-            >
-              {loading ? <LoadingSpinner label="Submitting Request..." /> : "Request Approval"}
-            </button>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Requested Access Level <span className="text-red-400">*</span></label>
+                  <select className={inputClass} value={requestForm.requested_role} onChange={handleRequestChange("requested_role")} required>
+                    {ROLES.map((role) => (
+                      <option key={role.value} value={role.value}>{role.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider auth-label">Reason for Access</label>
+                  <textarea
+                    rows={3}
+                    className="w-full rounded-xl border px-4 py-3 text-sm outline-none focus:border-emerald-400 transition-all duration-200 resize-none auth-input"
+                    placeholder="Briefly describe why you need access to BundleMind..."
+                    value={requestForm.reason}
+                    onChange={handleRequestChange("reason")}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="mt-2 h-12 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition-all flex items-center justify-center"
+                  disabled={loading}
+                >
+                  {loading ? <LoadingSpinner label="Submitting Request..." /> : "Submit Access Request"}
+                </button>
+              </>
+            )}
           </form>
         )}
       </div>

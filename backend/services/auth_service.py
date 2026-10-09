@@ -1,9 +1,13 @@
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from jose import jwt
 from passlib.context import CryptContext
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from models.user import User, UserRole
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-development")
