@@ -13,7 +13,7 @@ PeriodType = Literal["day", "week", "month"]
 
 
 def load_product_movement_bundle(model_path: str):
-    bundle = joblib.load(model_path, mmap_mode="r")
+    bundle = joblib.load(model_path)
 
     required = {
         "pipeline",
