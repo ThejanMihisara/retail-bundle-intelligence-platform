@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -12,7 +13,24 @@ DATABASE_URL = os.getenv(
     "mysql+pymysql://root:password@localhost:3306/bundlemind_db",
 )
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+
+def _engine_config(database_url: str) -> tuple[str, dict]:
+    url = make_url(database_url)
+    query = dict(url.query)
+    ssl_mode = query.pop("ssl-mode", None) or query.pop("sslmode", None)
+    config = {"pool_pre_ping": True}
+
+    if ssl_mode and str(ssl_mode).lower() not in {"disable", "disabled", "false", "0"}:
+        config["connect_args"] = {"ssl": {}}
+
+    if query != dict(url.query):
+        url = url.set(query=query)
+
+    return url.render_as_string(hide_password=False), config
+
+
+_database_url, _engine_kwargs = _engine_config(DATABASE_URL)
+engine = create_engine(_database_url, **_engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
