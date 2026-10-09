@@ -91,12 +91,6 @@ class ForecastService:
 
         self.loaded = True
         logger.info("Forecasting model bundles loaded successfully.")
-        
-        
-        try:
-            self.warmup_cache()
-        except Exception as e:
-            logger.error(f"Failed to warm up prediction cache: {e}")
 
     def warmup_cache(self):
         logger.info("Warming up prediction cache (2024-01-01 to 2026-12-31)...")

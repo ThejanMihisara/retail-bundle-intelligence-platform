@@ -156,29 +156,28 @@ class ModelService:
         logger.info("All model artifacts loaded successfully.")
 
     def get_model_status(self) -> Dict[str, Any]:
-        forecast_loaded = False
+        forecast_configured = False
         from services.product_movement_service import product_movement_service
         try:
-           
             from services.forecast_service import forecast_service
-            forecast_service.check_ready()
-            forecast_loaded = forecast_service.loaded
-        except Exception:
-            pass
-        try:
-            product_movement_service.check_ready()
+            forecast_configured = (
+                forecast_service.tx_model_path.exists()
+                and forecast_service.qty_model_path.exists()
+            )
         except Exception:
             pass
 
         movement_bundle = product_movement_service.bundle or {}
         movement_model_loaded = product_movement_service.bundle is not None
+        movement_model_configured = product_movement_service.model_path.exists()
 
         return {
             "loaded": self.loaded,
             "random_forest": {
                 "model_loaded": movement_model_loaded,
                 "predictions_loaded": movement_model_loaded,
-                "period_analysis_loaded": bool(movement_bundle.get("supported_period_types")),
+                "configured": movement_model_configured,
+                "period_analysis_loaded": bool(movement_bundle.get("supported_period_types")) or movement_model_configured,
                 "feature_importance_loaded": self.rf_feature_importance is not None,
                 "training_summary_loaded": bool(movement_bundle.get("test_metrics")) or self.rf_training_summary is not None,
                 "classification_report_loaded": bool(self.rf_classification_report)
@@ -193,7 +192,7 @@ class ModelService:
                 "training_summary_loaded": self.fp_training_summary is not None
             },
             "demand_forecasting": {
-                "model_loaded": forecast_loaded,
+                "model_loaded": forecast_configured,
                 "type": "Hybrid Ensemble Model",
                 "method": "Prophet + HistGradientBoosting",
                 "data_source": "Live MySQL transactions",

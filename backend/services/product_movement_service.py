@@ -23,9 +23,6 @@ class ProductMovementService:
             / "product_movement"
             / "product_movement_random_forest_bundle.pkl"
         )
-        
-     
-        self.load_model()
 
     def load_model(self):
         try:
