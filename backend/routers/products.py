@@ -87,11 +87,11 @@ async def get_product_movement_model_info(_: User = Depends(get_current_user)):
     bundle = product_movement_service.bundle or {}
     return {
         "model_loaded": product_movement_service.bundle is not None,
-        "predictions_loaded": product_movement_service.bundle is not None,
-        "period_analysis_loaded": bool(bundle.get("supported_period_types")),
+        "predictions_loaded": product_movement_service.bundle is not None or product_movement_service.use_preview,
+        "period_analysis_loaded": bool(bundle.get("supported_period_types")) or product_movement_service.use_preview,
         "training_summary_loaded": bool(bundle.get("test_metrics")),
         "model_name": "Random Forest",
-        "model_version": bundle.get("model_version"),
+        "model_version": bundle.get("model_version") or "product_movement_preview",
         "training_start_date": bundle.get("training_start_date"),
         "training_end_date": bundle.get("training_end_date"),
     }
@@ -622,9 +622,9 @@ async def predict_movement(
 
     model_info = {
         "model_name": "Random Forest",
-        "model_version": product_movement_service.bundle["model_version"],
-        "training_start_date": product_movement_service.bundle.get("training_start_date", "2024-01-01"),
-        "training_end_date": product_movement_service.bundle.get("training_end_date", "2025-12-31"),
+        "model_version": (product_movement_service.bundle or {}).get("model_version", "product_movement_preview"),
+        "training_start_date": (product_movement_service.bundle or {}).get("training_start_date", "2024-01-01"),
+        "training_end_date": (product_movement_service.bundle or {}).get("training_end_date", "2025-12-31"),
     }
 
     return {

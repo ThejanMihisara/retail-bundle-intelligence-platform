@@ -1,6 +1,7 @@
 import calendar
 import collections
 import logging
+import os
 from datetime import datetime, date, timedelta, time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -24,6 +25,12 @@ class ForecastService:
         self.models_dir = self.base_dir / "models" / "Future Forecast"
         self.tx_model_path = self.models_dir / "transaction_forecast_model.pkl"
         self.qty_model_path = self.models_dir / "quantity_forecast_model.pkl"
+        self.static_forecast_path = self.models_dir / "future_forecasts_2026_daily.csv"
+        self.use_static = os.getenv("FORECAST_USE_STATIC", "true").lower() in {
+            "1",
+            "true",
+            "yes",
+        }
         
         self._tx_bundle = None
         self._qty_bundle = None
@@ -168,8 +175,6 @@ class ForecastService:
                 )
 
     def run_future_forecast(self, db: Session, view: str = "daily", start_date: Optional[str] = None, end_date: Optional[str] = None, days: Optional[int] = None) -> List[Dict[str, Any]]:
-        self.check_ready()
-
         default_start = date.today()
 
         
@@ -196,10 +201,41 @@ class ForecastService:
         if start > end:
             raise HTTPException(status_code=400, detail="Start date must be before or equal to end date.")
 
-        daily_records = self.get_cached_predictions("transactions", start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
+        if self.use_static:
+            daily_records = self._get_static_daily_records(start, end)
+        else:
+            self.check_ready()
+            daily_records = self.get_cached_predictions("transactions", start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
 
         
         return self.aggregate_future_forecasts(daily_records, view)
+
+    def _get_static_daily_records(self, start: date, end: date) -> List[Dict[str, Any]]:
+        if not self.static_forecast_path.exists():
+            raise HTTPException(status_code=503, detail=f"Static forecast file not found: {self.static_forecast_path}")
+
+        df = pd.read_csv(self.static_forecast_path)
+        df["forecast_date"] = pd.to_datetime(df["forecast_date"]).dt.date
+        df = df[(df["forecast_date"] >= start) & (df["forecast_date"] <= end)].copy()
+
+        records = []
+        for _, row in df.iterrows():
+            forecast_date = row["forecast_date"]
+            d_str = forecast_date.strftime("%Y-%m-%d")
+            records.append({
+                "forecast_date": d_str,
+                "period_start": d_str,
+                "period_end": d_str,
+                "period_label": d_str,
+                "day_of_week": forecast_date.strftime("%A"),
+                "predicted_transactions": int(row["predicted_transactions"]),
+                "transaction_lower": int(row["transaction_lower"]),
+                "transaction_upper": int(row["transaction_upper"]),
+                "predicted_quantity_sold": int(row["predicted_quantity_sold"]),
+                "quantity_lower": int(row["quantity_lower"]),
+                "quantity_upper": int(row["quantity_upper"]),
+            })
+        return records
 
     def aggregate_future_forecasts(self, daily_records: List[Dict[str, Any]], view: str) -> List[Dict[str, Any]]:
         if view == "daily":

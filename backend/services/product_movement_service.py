@@ -1,6 +1,7 @@
 import os
 import logging
 from pathlib import Path
+import pandas as pd
 from fastapi import HTTPException
 from services.product_movement_predictor import (
     load_product_movement_bundle,
@@ -15,14 +16,23 @@ class ProductMovementService:
         self.load_error = None
         self.model_mtime = None
         self._cache = {}
+        self.use_preview = os.getenv("PRODUCT_MOVEMENT_USE_PREVIEW", "true").lower() in {
+            "1",
+            "true",
+            "yes",
+        }
         
         self.base_dir = Path(__file__).resolve().parent.parent
+        self.preview_dir = self.base_dir / "models" / "product_movement"
         self.model_path = (
-            self.base_dir
-            / "models"
-            / "product_movement"
+            self.preview_dir
             / "product_movement_random_forest_bundle.pkl"
         )
+        self.preview_paths = {
+            "day": self.preview_dir / "future_day_preview.csv",
+            "week": self.preview_dir / "future_week_preview.csv",
+            "month": self.preview_dir / "future_month_preview.csv",
+        }
 
     def load_model(self):
         try:
@@ -116,6 +126,21 @@ class ProductMovementService:
             logger.error(self.load_error)
 
     def check_ready(self):
+        if self.use_preview:
+            missing = [
+                str(path)
+                for path in self.preview_paths.values()
+                if not path.exists()
+            ]
+            if missing:
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Product movement preview files are missing: {', '.join(missing)}",
+                )
+            return
+     
+        if self.bundle is None and self.load_error is None:
+            self.load_model()
      
         if self.model_path.exists():
             current_mtime = self.model_path.stat().st_mtime
@@ -136,8 +161,39 @@ class ProductMovementService:
         if self.bundle is None:
             raise HTTPException(status_code=503, detail="Model bundle not loaded.")
 
+    def _get_preview_predictions(self, selected_date_str: str, period_type: str):
+        path = self.preview_paths.get(period_type)
+        if path is None:
+            raise HTTPException(status_code=400, detail="period_type must be day, week, or month")
+        if not path.exists():
+            raise HTTPException(status_code=503, detail=f"Preview file not found at {path}")
+
+        cache_key = ("preview", selected_date_str, period_type)
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+
+        df = pd.read_csv(path)
+        df["period_start"] = selected_date_str
+        df["period_type"] = period_type
+
+        defaults = {
+            "average_unit_price": 0.0,
+            "overall_profit_margin": 0.0,
+            "overall_daily_quantity_rate": 0.0,
+            "movement_confidence": 0.0,
+            "movement_score": 0.0,
+        }
+        for column, value in defaults.items():
+            if column not in df.columns:
+                df[column] = value
+
+        self._cache[cache_key] = df
+        return df
+
     def get_predictions(self, selected_date_str: str, period_type: str):
         self.check_ready()
+        if self.use_preview:
+            return self._get_preview_predictions(selected_date_str, period_type)
         
         model_version = self.bundle["model_version"]
         cache_key = (selected_date_str, period_type, model_version)
