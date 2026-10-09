@@ -29,7 +29,7 @@ async def get_rf_feature_importance(_: User = Depends(get_current_user)):
     if df is None:
         raise HTTPException(status_code=404, detail="Random Forest feature importance not found.")
     
-    # Sort and return as list of dicts
+    
     sorted_df = df.sort_values("importance", ascending=False)
     return sorted_df.to_dict("records")
 

@@ -1,0 +1,501 @@
+period_start,period_type,product_id,product_name,category,profile_mean_quantity,seasonal_month_mean_quantity,overall_quantity,overall_transactions,predicted_movement_level,probability_fast_moving,probability_medium_moving,probability_slow_moving,movement_confidence,movement_score
+2026-01-01,month,1043,Baby Cheramy Oil 100ml,Baby & Kids,63.958333333333336,103.5,1535,345,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1060,P.Baby Cologne (magic) 50ml,Baby & Kids,27.75,34.0,666,372,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1069,P.Baby Cream (Bedtime) 100ml,Baby & Kids,27.541666666666668,35.0,661,376,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1077,P. Baby Soap (Babytime) 100g,Baby & Kids,24.416666666666668,31.0,586,353,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1078,P. Baby Soap (Aloe/Neem) 100g,Baby & Kids,28.583333333333332,34.0,686,395,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1079,P. Baby Soap (Herbal) 100g,Baby & Kids,28.583333333333332,38.0,686,387,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1082,C.Baby Soap (floral)100g,Baby & Kids,31.666666666666668,40.0,760,413,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1091,K. Baby Soap (Avocado) 90g,Baby & Kids,27.25,31.0,654,368,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1098,Rathmal Baby Soap 75g,Baby & Kids,27.875,35.5,669,378,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1102,Baby Milk Soap 75g,Baby & Kids,27.25,37.0,654,383,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1116,7Oil,General Grocery,36.5,43.0,876,198,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1119,Silicone oil 25ml,Cooking Essentials,68.16666666666667,107.5,1636,385,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1120,Axe oil 3ml,Cooking Essentials,8.24,15.5,206,54,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1121,Axe oil 5ml,Cooking Essentials,68.41666666666667,112.5,1642,398,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1148,Sunsilk Shampoo (Black)80ml,Personal Care,28.375,44.5,681,393,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1151,Sunsilk Shampoo (Black)180ml,Personal Care,52.5,81.0,1260,739,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1152,Sunsilk Shampoo (Green Tea)180ml,Personal Care,25.416666666666668,39.0,610,339,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1153,Sunsilk Shampoo (Almond)180ml,Personal Care,25.958333333333332,30.0,623,360,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1163,Clear Shampoo (Ice Cool)180ml,Personal Care,26.166666666666668,46.0,628,370,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1166,Dove Shampoo (Intense) 180ml,Personal Care,57.416666666666664,92.0,1378,763,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1186,Baby Diaper (Softlove) 5pcs / S,Baby & Kids,22.333333333333332,37.0,536,333,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1187,Baby Diaper (Softlove) 4pcs /M,Baby & Kids,47.375,62.5,1137,646,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1188,Baby Diaper (Softlove) 4pcs /L,Baby & Kids,79.75,123.0,1914,1127,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1225,N/S Facial Wash 100ml (Carrot),Cleaning & Household,27.541666666666668,35.0,661,382,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1253,Chandanalepa Herbal Cream 12g,Personal Care,28.416666666666668,34.5,682,386,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1265,Misumi Soap 90g,Personal Care,30.458333333333332,43.5,731,422,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1270,Lifebuoy Turmeric 100g,Cooking Essentials,82.5,101.5,1980,457,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1275,Sunlight ( Lime & Orange) 115g,Cleaning & Household,68.5,69.0,1644,935,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1276,Sunlight  (Care) 115g,Cleaning & Household,25.833333333333332,47.5,620,363,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1278,Sunlight  (Nil Manel) 115g,Cleaning & Household,14.791666666666666,17.5,355,196,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1288,Senola Soap,Personal Care,43.291666666666664,59.0,1039,621,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1296,Vim Limes (Promo),Cleaning & Household,32.083333333333336,37.0,770,444,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1314,BIO Clean (Tile Cleaner) Kohomba,Cleaning & Household,29.208333333333332,37.5,701,394,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1335,Teepol Dishwash Gel (Lime) 500ml,General Grocery,32.25,33.0,774,393,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1410,Prima Tea Bun 75g,Beverages,73.0,95.0,1752,653,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1416,Highland  Vanilla Milk 180ml,Dairy & Chilled,69.58333333333333,104.0,1670,871,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1418,Highland Fresh Milk 900ml,Dairy & Chilled,36.041666666666664,63.0,865,448,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1419,Highland Butter (Salted) 200g,Dairy & Chilled,38.375,41.5,921,477,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1422,Highland Milk Powder 400g,Dairy & Chilled,43.208333333333336,61.0,1037,550,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1426,Ambewela Fresh Milk (vanilla) 1L,Dairy & Chilled,21.791666666666668,25.0,523,276,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1430,Daily Vanilla milk 180ml,Dairy & Chilled,19.125,24.5,459,235,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1436,Kotmale Vanilla milk 170ml,Dairy & Chilled,36.458333333333336,43.0,875,424,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1449,Milo Drink 180ml,Beverages,95.54166666666667,153.5,2293,877,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1457,Ratthi Milk Powder 160g,Dairy & Chilled,17.791666666666668,16.0,427,226,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1477,Milkmaid 510g,General Grocery,30.166666666666668,36.5,724,376,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1478,White Sugar 1kg (Pkt),Staples & Dry Groceries,330.1666666666667,328.0,7924,1766,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1479,White Sugar 1kg,Staples & Dry Groceries,346.2083333333333,421.5,8309,1849,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1496,Tiara Layer Cake (Chocolate)310g,Snacks & Confectionery,117.75,166.0,2826,1005,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1499,Tiara Layer Cake (Vanilla)480g,Snacks & Confectionery,28.833333333333332,28.0,692,225,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1506,E/H Wonder Bar (Chocolate),Snacks & Confectionery,7.4,19.0,185,60,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1516,E/H Ice Cream (Chocolate) 80ml,Personal Care,27.458333333333332,36.5,659,386,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1517,E/H Ice Cream (Vanilla) 80ml,Personal Care,13.962962962962964,20.0,377,220,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1527,E/H Ice Cream (Chocolate) 500ml,Personal Care,17.375,43.0,417,246,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1553,Maliban Tea (Kahata-Poronduwa)50g,Beverages,8.72,22.5,218,76,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1562,Sun Silk Shampoo (King-coconut)80ML,Personal Care,68.75,92.0,1650,376,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1564,Watawala Tea 100g,Beverages,125.08333333333333,188.0,3002,1117,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1566,Watawala Tea 400g,Beverages,45.166666666666664,51.0,1084,416,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1567,Watawala Ayurvedic Tea 160g,Beverages,77.16666666666667,108.5,1852,685,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1568,Zesta Tea (BOPF)  50g,Beverages,7.576923076923077,21.0,197,62,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1569,Zesta Tea (BOPF) 100g,Beverages,55.083333333333336,79.0,1322,479,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1570,Zesta Tea (BOPF) 195g,Beverages,28.75,87.5,690,243,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1574,Dilmah Leaf-Tea (BOPF) 100g,Beverages,40.75,73.5,978,371,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1575,Dilmah Strong Tea 100g,Beverages,54.875,120.5,1317,462,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1583,Lipton Ceylonta Tea 100g,Beverages,8.041666666666666,15.5,193,77,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1584,Lipton Ceylonta Tea 200g,Beverages,46.208333333333336,31.0,1109,380,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1587,Harischandra Coffee 20g,Beverages,6.925925925925926,18.0,187,65,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1602,Godrej Hair Colour Shampoo 10ml,Personal Care,27.75,33.0,666,380,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1626,Ritzbury Milk Chocolate 45g,Dairy & Chilled,50.333333333333336,42.5,1208,617,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1635,Ritzbury  Chunky-Choc (Classic)200g,General Grocery,75.70833333333333,93.0,1817,954,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1639,MD Baking powder 50g,General Grocery,24.041666666666668,21.0,577,293,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1645,Motha Baking Powder 100g,General Grocery,36.75,20.5,882,457,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1647,Motha Cornflour 200g,General Grocery,40.291666666666664,42.0,967,222,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1653,Motha Wattalappan (Pudding mix)110g,Snacks & Confectionery,32.833333333333336,34.0,788,261,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1655,Motha Icing Sugar 250g,Staples & Dry Groceries,109.29166666666667,42.0,2623,579,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1656,Motha Icing Sugar 500g,Staples & Dry Groceries,106.70833333333333,50.0,2561,566,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1657,Motha Icing Sugar 1kg,Staples & Dry Groceries,118.83333333333333,97.0,2852,683,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1661,Motha Jelly (Strawberry) 200g,Snacks & Confectionery,38.291666666666664,39.5,919,311,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1670,Delmege Colouring (egg yellow)28ml,"Meat, Fish & Frozen",29.583333333333332,46.5,710,371,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1689,Gold Hair Cream 100ml,Personal Care,29.583333333333332,47.0,710,403,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1704,Kumarika Hair Oil 100ml,Personal Care,7.3478260869565215,18.5,169,40,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1721,LankaSoy (polos curry)90g,Cooking Essentials,85.5,123.0,2052,481,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1789,Asiri Ddevilled Dhal 100g,Staples & Dry Groceries,70.0,139.0,1680,404,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1790,Asiri Rice Flour Savoury (Onion)25g,Staples & Dry Groceries,42.791666666666664,55.0,1027,242,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1791,Asiri Rice Flour Savoury (Onion)80g,Staples & Dry Groceries,62.833333333333336,36.5,1508,329,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1799,Asiri Sugar Candy 100g60,Staples & Dry Groceries,84.08333333333333,81.5,2018,494,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1807,Maliban Smart Cream Cracker 190g,Personal Care,28.541666666666668,47.0,685,417,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1808,Maliban Smart Cream Cracker 230g,Personal Care,33.916666666666664,52.0,814,476,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1815,SCAN Jumbo Peanut (Chilli)40g,Cooking Essentials,10.851851851851851,21.5,293,72,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1818,CBL Bran Cracker 160g,Snacks & Confectionery,54.541666666666664,107.5,1309,446,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1820,CBL Cheese Cracker 100g,Dairy & Chilled,17.416666666666668,22.0,418,216,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1822,CBL Sun Cracker 95g,Snacks & Confectionery,55.208333333333336,88.0,1325,488,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1823,CBL Sun Cracker (Salt & Pepper)95g,Staples & Dry Groceries,13.481481481481481,31.0,364,84,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1834,Maliban Ginger Biscuit 80g,Cooking Essentials,11.541666666666666,26.5,277,67,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1836,Maliban Ginger Biscuit 370g,Cooking Essentials,171.70833333333334,260.0,4121,955,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1850,CBL Hawaian Cookies 100g,General Grocery,16.375,29.5,393,201,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1852,CBL Ginger Biscuits 85g,Cooking Essentials,125.5,209.0,3012,703,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1853,CBL Ginger Biscuits 400g,Cooking Essentials,196.875,340.0,4725,1122,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1854,CBL Nice Biscuits  100g,Snacks & Confectionery,248.29166666666666,366.0,5959,2151,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1856,CBL Kalo Biscuits 90g,Snacks & Confectionery,8.407407407407407,18.0,227,80,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1870,Little Lion Choco Cookies 180g,General Grocery,34.416666666666664,60.5,826,421,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1878,Dettol Hand Wash (sensitive) 200ml,Cleaning & Household,45.291666666666664,83.5,1087,610,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1882,Dettol Hand Wash Refill (sensitive)175ml,Cleaning & Household,27.333333333333332,40.5,656,381,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1883,Dettol Hand Wash Refill (skincare)175ml,Cleaning & Household,17.541666666666668,19.0,421,246,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1891,Lifebuoy Hand Wash 200ml (Green Tea),Cleaning & Household,27.333333333333332,48.5,656,393,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1900,Sunlight Care Liquid (naturals)1L,Cleaning & Household,49.333333333333336,72.0,1184,711,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1904,Rin Lemon-Rose 200g,Cleaning & Household,49.666666666666664,66.5,1192,700,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1915,Sunlight 2in1 (Lemon) 1kg,Cleaning & Household,70.75,72.0,1698,952,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1926,Bubble Detergent Powder 500g,Cleaning & Household,51.75,81.0,1242,720,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1934,Diva Fresh (Jasmine) 400g,Cleaning & Household,26.666666666666668,40.0,640,372,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1937,Diva Fresh (Sepalika) 400g,Cleaning & Household,26.791666666666668,50.0,643,368,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1939,Diva Fresh (Purple lotus) 60g,Cleaning & Household,28.5,42.0,684,401,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1958,MD Tomato Sauce 400g,Cooking Essentials,6.6,16.5,198,48,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1967,Edinborough Mustard Cream165g,Cooking Essentials,86.70833333333333,86.0,2081,476,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1977,Edinborough Chilli Sauce230g,Cooking Essentials,75.08333333333333,143.0,1802,417,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1978,Edinborough B.B.Q Sauce350ml,General Grocery,27.166666666666668,25.5,652,329,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1996,KVC Tomato Sauce400g,General Grocery,29.333333333333332,40.0,704,358,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,1998,Crunchy Peanut Butter325g,General Grocery,51.0,63.0,1224,634,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2002,Ocean Star Canned Fish 425g,"Meat, Fish & Frozen",86.29166666666667,99.0,2071,1047,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2003,Ocean Star Canned Fish 155g,"Meat, Fish & Frozen",62.5,89.5,1500,789,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2006,Marina Sun Flower Oil 1L,Cooking Essentials,12.6,22.0,315,82,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2007,Marina Coconut Oil 200ml,Cooking Essentials,66.79166666666667,53.5,1603,347,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2008,Marina Coconut Oil 350ml,Cooking Essentials,196.125,296.5,4707,1104,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2009,Marina Coconut Oil 675ml,Cooking Essentials,86.95833333333333,45.0,2087,449,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2010,Marina Coconut Oil 500ml,Cooking Essentials,52.041666666666664,55.0,1249,282,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2012,Marina Vegetable Oil 500ml,Cooking Essentials,75.625,97.0,1815,443,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2013,Marina Coconut Milk 400ml,Dairy & Chilled,69.58333333333333,63.5,1670,398,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2014,Fortune Vegetable Oil 200ml,Cooking Essentials,11.478260869565217,17.0,264,55,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2016,Fortune Coconut Oil 675ml,Cooking Essentials,86.04166666666667,139.0,2065,483,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2017,Turkey Cooking Oil 1L,Cooking Essentials,40.125,29.5,963,242,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2018,Coopoliva Olive Oil 250ml,Cooking Essentials,19.91304347826087,17.5,458,108,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2019,Harischandra Noodles 400g,Staples & Dry Groceries,177.25,277.0,4254,1019,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2020,Harischandra Noodles 400g (2minutes),Staples & Dry Groceries,142.83333333333334,214.0,3428,804,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2029,Sera Regular Noodles 400g,Staples & Dry Groceries,61.083333333333336,74.0,1466,357,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2036,Prima Instant Noodles 345g,Staples & Dry Groceries,65.91666666666667,107.0,1582,386,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2045,Edinborough Tomato Sauce 405g,Cooking Essentials,180.25,316.0,4326,1039,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2046,Edinborough Tomato Sauce 375g,Cooking Essentials,170.625,292.0,4095,1018,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2047,Edinborough Chilli Sauce 405g,Cooking Essentials,67.79166666666667,98.0,1627,385,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2048,Edinborough Oyster Sauce 210g,Cooking Essentials,66.5,119.5,1596,380,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2049,Mity Sesame Oil 200ml,Cooking Essentials,10.107142857142858,26.0,283,66,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2051,Motha Jelly (apple)200g,Snacks & Confectionery,30.625,27.5,735,247,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2055,Maggi Coconut Milk Powder 25g,Dairy & Chilled,51.291666666666664,51.5,1231,274,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2056,Maggi Coconut Milk Powder 125g,Dairy & Chilled,320.25,479.0,7686,1804,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2058,Maggi Coconut Milk Powder 1kg,Dairy & Chilled,17.12,17.0,428,111,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2059,Renuka Coconut Milk Powder 300g,Dairy & Chilled,127.91666666666667,177.5,3070,737,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2068,CocaCola 1050ml,General Grocery,76.45833333333333,90.0,1835,954,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2069,CocaCola 1.5L,General Grocery,77.41666666666667,83.0,1858,957,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2070,Sprite 250ml,Beverages,27.833333333333332,32.0,668,243,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2096,Elephant House Ginger Beer 500ml,Cooking Essentials,8.11111111111111,17.0,219,56,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2104,Kandos Milk Choco 10g,Dairy & Chilled,32.833333333333336,46.0,788,406,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2126,Sunlight 2in1 (Rose) 200g,Cleaning & Household,27.708333333333332,50.5,665,388,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2130,Prima Pittu Flour 1kg,Staples & Dry Groceries,57.125,50.0,1371,314,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2132,Prima Family Flour 1kg,Staples & Dry Groceries,7.083333333333333,16.0,170,45,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2134,Asoka Red Rice Flour 900g,Staples & Dry Groceries,43.11538461538461,53.0,1121,253,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2141,Mini Chips (curry flavour)27g,Cooking Essentials,67.91666666666667,112.0,1630,401,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2162,Wijaya Chilli Pieces 50g,Cooking Essentials,42.791666666666664,56.5,1027,243,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2164,Wijaya Chilli Pieces 250g,Cooking Essentials,42.541666666666664,58.5,1021,243,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2165,Wijaya Chilli Pieces 500g,Cooking Essentials,10.36,15.5,259,57,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2167,Wijaya Chilli Powder 100g,Cooking Essentials,13.125,27.0,315,74,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2170,Wijaya Curry Powder 50g,Cooking Essentials,146.875,247.5,3525,835,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2171,Wijaya Curry Powder 100g,Cooking Essentials,62.791666666666664,55.5,1507,351,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2172,Wijaya Curry Powder 250g,Cooking Essentials,188.83333333333334,228.0,4532,1028,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2176,Wijaya Roasted Curry Powder 50g,Cooking Essentials,77.625,104.5,1863,430,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2190,Freelan Meat Curry Powder 250g,Cooking Essentials,68.75,110.5,1650,399,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2194,Freelan Chilli  Powder 100g,Cooking Essentials,81.33333333333333,65.0,1952,461,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2196,Freelan Chilli  Pieces 100g,Cooking Essentials,12.28,21.0,307,64,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2203,Turmeric Paste 50g,Cooking Essentials,9.620689655172415,30.5,279,63,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2204,Goraka Paste 100g,General Grocery,29.25,43.5,702,357,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2205,Goraka Paste 250g,General Grocery,40.458333333333336,44.5,971,493,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2261,Sunquick  Orange Fruit Drink 200ml,Beverages,49.458333333333336,92.5,1187,404,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2273,Highland Dairy Ice Cream (butter scotch)1L,Personal Care,27.125,26.0,651,391,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2276,T.R.M. Kekulu Rice 1kg,Staples & Dry Groceries,81.75,95.5,1962,463,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2277,Ruby Supiri White Rice 1kg,Staples & Dry Groceries,51.083333333333336,29.5,1226,247,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2279,Araliya Premium Samba Rice 1kg,Staples & Dry Groceries,171.70833333333334,239.5,4121,998,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2280,Araliya Premium Nadu Rice 1kg,Staples & Dry Groceries,202.875,225.5,4869,1098,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2292,Atlas Single Ruled Book 120page,Stationery,14.958333333333334,48.5,359,189,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2293,Atlas Single Ruled Book 160page,Stationery,16.333333333333332,47.0,392,206,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2294,Atlas Single Ruled Book 200page,Stationery,29.5,141.5,708,366,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2299,Atlas CR Book Single Ruled (80p),Stationery,15.6,55.0,390,205,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2303,Atlas CR Book Square Ruled (80p),Stationery,18.375,70.5,441,223,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2304,Atlas CR Book Square Ruled (120p),Stationery,20.47826086956522,65.0,471,247,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2323,Kist Mixed Fruit Nectar 200ml,Beverages,23.166666666666668,28.5,556,205,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2329,"Kome Rice Cracker 45g (B,B,Q)",Staples & Dry Groceries,46.625,100.5,1119,263,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2330,"Kome Rice Cracker 90G (B,B,Q)",Staples & Dry Groceries,87.91666666666667,148.5,2110,466,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2333,CBL Milk Cream Biscuits 390g,Personal Care,26.333333333333332,40.0,632,357,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2336,White Rice Flour 400g,Staples & Dry Groceries,51.833333333333336,30.5,1244,286,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2342,CBL Savoury Nuts Biscuits 30g,Snacks & Confectionery,45.458333333333336,71.0,1091,400,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2344,Coconut Oil 750ml (loose),Cooking Essentials,205.5,223.0,4932,1131,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2367,Aluminium Foil 37.5sq.ft,General Grocery,66.95833333333333,128.5,1607,382,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2371,Cooking Oil 750ml (loose),Cooking Essentials,68.29166666666667,86.5,1639,394,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2378,Zesta Tea (BOPF) 390g,Beverages,117.08333333333333,179.5,2810,1003,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2393,Kist Tomato Sauce 15g,Cooking Essentials,72.95833333333333,118.5,1751,431,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2394,Gram 1kg,Staples & Dry Groceries,12.041666666666666,25.0,289,71,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2397,Atlas Square Ruled 1/2'',Stationery,15.391304347826088,47.0,354,195,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2399,Atlas Single Ruled 1/2'',Stationery,18.625,48.0,447,224,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2401,Atlas CR Book Single Ruled (200p),Stationery,25.52,126.5,638,314,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2432,Little Lion Milky Cookies 200g,General Grocery,37.958333333333336,77.0,911,470,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2439,Verda Pasta (Penne Rigate) 400g,Staples & Dry Groceries,9.153846153846153,35.5,238,56,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2453,Prima Swiss Roll (Coffee) 225g,Beverages,7.260869565217392,17.5,167,55,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2456,Atlas Colour Pencils 6,Stationery,24.916666666666668,118.5,598,313,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2457,Atlas Kidz Clay 100g,Stationery,18.125,59.0,435,226,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2460,Atlas Binder Glue Pen 40g,Stationery,26.541666666666668,107.0,637,334,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2461,Atlas Binder Glue 40g,Stationery,21.576923076923077,108.0,561,300,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2478,Ritzbury Chocolate (Peanut) 45g,Snacks & Confectionery,114.83333333333333,159.0,2756,967,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2492,Giniraja Ayurvedic Herbal Oil 30ml,Cooking Essentials,8.925925925925926,18.5,241,54,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2499,Imorich Wonder Cone (Cooki Cream) 120ml,Personal Care,25.916666666666668,41.0,622,376,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2504,Atlas Max pen,Stationery,23.807692307692307,102.0,619,320,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2507,Mango 2B Pencil,Stationery,24.083333333333332,104.5,578,320,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2510,Kakulu-Samba Rice 1kg,Staples & Dry Groceries,77.875,117.0,1869,462,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2512,Pears Baby Soap (Aloevera) 95g,Baby & Kids,66.33333333333333,103.0,1592,896,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2513,Pears Baby Soap (Venivel) 95g,Baby & Kids,49.875,70.5,1197,700,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2514,Pears Baby Oil (Olive Oil) 100ml,Baby & Kids,154.91666666666666,225.0,3718,901,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2515,Lifebuoy Hand Wash(Total-10)180ml,Cleaning & Household,16.083333333333332,25.0,386,219,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2517,Sunlight Care Liquid 1L,Cleaning & Household,49.291666666666664,72.0,1183,710,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2528,Ambewela Fresh Milk (Chocolate) 1L,Dairy & Chilled,36.291666666666664,57.0,871,476,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2535,CBL Potato Cracker 110g,Snacks & Confectionery,50.083333333333336,94.0,1202,430,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2536,CBL Snak Cracker Biscuits 30g,Snacks & Confectionery,30.833333333333332,30.5,740,262,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2568,Atlas Pencils (Yellow),Stationery,27.208333333333332,103.0,653,340,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2569,Atlas Colour Pencils,Stationery,27.541666666666668,118.5,661,335,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2570,Atlas White Board Marker,Stationery,13.785714285714286,45.5,386,195,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2575,Atlas Adhesive Tape 1/2'',Stationery,26.625,129.5,639,319,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2579,Bill Book (small),Stationery,15.64,49.5,391,200,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2592,Sunquick Mixed Fruit Drink 200ml,Beverages,33.125,43.5,795,276,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2593,Rathna Keeri Samba Rice 1kg,Staples & Dry Groceries,9.571428571428571,24.5,268,54,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2603,Rin Detergent Powder 500g,Cleaning & Household,50.958333333333336,72.0,1223,720,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2622,Baby Cheramy Baby Cologne 50ml,Baby & Kids,49.5,78.5,1188,686,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2629,Prima Self Raising Flour 1kg,Staples & Dry Groceries,98.83333333333333,60.5,2372,501,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2632,Kotmale Fresh Milk 180ml,Dairy & Chilled,19.5,29.0,468,239,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2634,Kotmale Milk With Oats 1L,Dairy & Chilled,34.583333333333336,43.0,830,435,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2636,Maliban Wafers Lemon Cream 90g,Personal Care,28.666666666666668,43.5,688,400,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2645,Plaza Canned Fish 425g,"Meat, Fish & Frozen",33.416666666666664,33.0,802,410,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2669,San Remo Pasta (Penne) 500g,Staples & Dry Groceries,40.458333333333336,111.0,971,234,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2678,Freelan Kurakkan Flour 200g,Staples & Dry Groceries,42.166666666666664,39.5,1012,224,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2683,Lifebuoy Shampoo 80ml,Personal Care,28.625,36.0,687,378,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2684,Rin Detergent Powder 1kg,Cleaning & Household,56.458333333333336,89.5,1355,786,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2691,Maliban milk Powder 60g,Dairy & Chilled,21.73913043478261,18.5,500,250,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2692,Motha Gelatine 100g,General Grocery,16.47826086956522,19.5,379,188,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2696,Sesame &Ginger Mixed Jaggery 250g,Cooking Essentials,7.583333333333333,19.0,182,47,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2697,Ginger Cookies  175g,Cooking Essentials,12.384615384615385,21.0,322,79,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2698,Kist Orange Juice 1L,Beverages,30.5,85.5,732,263,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2700,Kist Mixed Fruit Juice 1L,Beverages,43.083333333333336,29.0,1034,356,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2710,Atlas Highlighter Pen (Yelo),Stationery,17.043478260869566,55.0,392,196,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2713,Sera Turmeric Powder 25g,Cooking Essentials,123.04166666666667,202.5,2953,720,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2716,Pelwatte Butter 200g,Dairy & Chilled,30.5,18.0,732,382,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2724,Chocolate Coated Cookies 100g,Snacks & Confectionery,10.875,26.5,261,79,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2736,Maldive Fish Bottle 100g,Cooking Essentials,70.58333333333333,125.0,1694,408,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2737,Little Lion Lincoln Biscuit 330g,Snacks & Confectionery,44.541666666666664,40.0,1069,367,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2746,Misumi Romansu Soap 90g,Personal Care,29.625,39.0,711,405,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2773,Wijaya Noodles 400g,Staples & Dry Groceries,69.16666666666667,119.5,1660,402,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2774,CBL Snak Cracker 260g,Snacks & Confectionery,39.5,93.0,948,324,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2782,Cinthol Lime Soap 100g,Personal Care,28.833333333333332,45.0,692,408,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2784,Kist Aloevera Drink 500ml,Beverages,29.916666666666668,37.5,718,264,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2791,Revello Fruit & Nut  Chocolate 170g,Snacks & Confectionery,41.333333333333336,31.0,992,357,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2806,Fontana Orange Juice 1L,Beverages,8.173913043478262,20.0,188,66,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2808,Maliban Cracker Thins 190g,Snacks & Confectionery,9.8,19.5,245,93,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2814,Baby Cheramy Shampoo 100ml,Baby & Kids,49.125,75.5,1179,683,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2825,Kurakkan Cracker 100g,Staples & Dry Groceries,11.592592592592593,33.5,313,72,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2827,Turmeric 25g,Cooking Essentials,10.291666666666666,22.5,247,65,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2832,Closeup Toothpaste 120g,Personal Care,52.833333333333336,85.5,1268,749,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2837,Kumarika Shampoo 40ml,Personal Care,26.0,26.5,624,369,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2843,Maliban Cracker Thins 95g,Snacks & Confectionery,9.083333333333334,17.0,218,68,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2845,Asiri Sweet Peanuts 100g,Snacks & Confectionery,53.541666666666664,91.5,1285,475,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2860,Marvel Baby Diapers,Baby & Kids,26.375,28.5,633,367,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2861,Coconut Milk 500ml,Dairy & Chilled,196.79166666666666,212.0,4723,1105,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2862,Diamond Tuna,General Grocery,32.208333333333336,40.5,773,409,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2877,CBL Wafer Stix 55g strawberry,Snacks & Confectionery,46.125,87.0,1107,386,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2892,Cricket Ball (Atlas),Stationery,17.416666666666668,51.5,418,217,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2893,CBL Super Cream Cracker 120g,Personal Care,17.333333333333332,55.0,416,250,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2895,Harischandra Coffee (200g),Beverages,8.166666666666666,16.0,196,66,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2906,Kotmale Butter 125g,Dairy & Chilled,18.958333333333332,16.5,455,228,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2913,Watawala Tea 500g,Beverages,29.625,39.5,711,236,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2928,Revello Dark Chocolate 100g,Snacks & Confectionery,48.875,88.0,1173,404,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2944,Daily Banana Flavoured milk 180ml,Dairy & Chilled,31.875,35.0,765,412,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2945,Milo Drink 125ml,Beverages,8.416666666666666,16.0,202,85,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2952,Bun Talk Sugar Cookies,Staples & Dry Groceries,58.416666666666664,62.0,1402,321,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2961,CocaCola Zero 1050ml,General Grocery,30.833333333333332,42.5,740,366,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2967,Coca-Cola 2L,Beverages,25.583333333333332,80.5,614,223,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2988,RichLife Mixed berry Drinking Yoghurt 180ml,Dairy & Chilled,16.791666666666668,42.0,403,206,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2991,Lipton Green Tea 20Tea bag,Beverages,31.583333333333332,54.0,758,265,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2995,P.Mirinda beverage 1L,General Grocery,15.958333333333334,17.0,383,183,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3006,Spinner Sugar Free 250ml,Staples & Dry Groceries,117.54166666666667,119.0,2821,665,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3018,LifeBuoy Shampoo 175ml,Personal Care,54.75,73.5,1314,741,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3034,Pears Baby Cream 50ml,Baby & Kids,50.0,68.5,1200,703,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3043,Sunlight 2Bar,Cleaning & Household,69.16666666666667,80.0,1660,960,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3050,Pears Bed Time BabySoap 70g,General Grocery,29.375,52.0,705,364,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3052,Pears Bee's Honey BabySoap 70g,General Grocery,35.166666666666664,43.5,844,417,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3054,Pears Rathmal BabySoap 70g,General Grocery,18.583333333333332,25.0,446,233,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3055,Signal Toothpaste 120g,Personal Care,67.54166666666667,75.0,1621,940,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3057,Signal Toothpaste 70g,Personal Care,71.125,107.0,1707,980,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3058,Signal Toothpaste 160g,Personal Care,31.458333333333332,40.0,755,436,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3059,Signal Clove & Ginger Toothpaste 120g,Personal Care,27.5,34.0,660,385,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3060,Signal Triple Clean Adult Toothbrush,Personal Care,56.5,82.0,1356,793,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3062,Ayush Toothpaste 30g,Personal Care,27.291666666666668,26.5,655,399,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3063,Ayush Toothpaste 110g,Personal Care,54.666666666666664,77.5,1312,773,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3078,Velvet Milk & Almond 70g,Dairy & Chilled,19.333333333333332,20.0,464,228,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3080,BabyCheramy Moisturizes & Cares Baby Shampoo 100ml,Baby & Kids,48.125,77.5,1155,682,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3085,Lovely 2Ply White Toillet Tissue,General Grocery,43.791666666666664,67.5,1051,226,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3112,Bag (Baby size),Baby & Kids,25.083333333333332,30.5,602,354,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3116,Candy Sugar 80g,Staples & Dry Groceries,125.79166666666667,183.5,3019,748,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3119,Rice Flakes (Samuel's Product) 200g,Staples & Dry Groceries,79.125,118.5,1899,438,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3128,Nestle Milo 15g,Beverages,8.217391304347826,21.0,189,72,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3129,Ratthi Tea & Sugar Added Milk Mix 25g,Dairy & Chilled,63.083333333333336,64.5,1514,335,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3144,GoodKnight Mosquito Coil 10Hours,General Grocery,162.0,237.5,3888,918,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3145,Chandanalepa Kohomba Ayurveda Soap 75g,Personal Care,19.666666666666668,19.0,472,278,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3146,Chandanalepa Cinnamon Ayurveda Soap 100g,Personal Care,27.791666666666668,31.5,667,397,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3150,GreenLand Sweet Corn 425g,Snacks & Confectionery,46.375,79.5,1113,413,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3155,Sunlight 2in1 500g,Cleaning & Household,50.958333333333336,77.0,1223,710,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3164,Sunlight 2in1 (sakura Fresh) 50g,Cleaning & Household,29.416666666666668,45.5,706,387,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3165,Rin Rose 50g,Cleaning & Household,16.458333333333332,20.0,395,223,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3180,Edinborouah Dark Soya Sauce 600ml,Cooking Essentials,62.791666666666664,97.0,1507,388,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3187,Diva Power Liquid Detergent 1L,Cleaning & Household,67.875,84.0,1629,966,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3189,Fortune RBD Coconut Oil 200ml,Cooking Essentials,125.04166666666667,159.5,3001,717,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3190,Fortune Cooking Oil RBD Palm Olein 2L,Cooking Essentials,67.0,116.5,1608,395,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3192,Daily Faluda Flavoured Milk 1L,Dairy & Chilled,19.458333333333332,26.0,467,244,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3194,Rexona Kohomba & Turmeric Soap 80g,Personal Care,60.041666666666664,85.0,1441,839,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3195,Rexona Jasmine & olive oil Soap 80g,Personal Care,137.25,243.5,3294,781,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3200,Pears Kokum Baby Soap 2 Pack,Baby & Kids,25.958333333333332,36.0,623,373,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3206,Pears Baby Cream 100ml,Baby & Kids,51.5,70.5,1236,702,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3208,Sunsilk Damage Restore Shampoo 80ml,Personal Care,28.916666666666668,37.0,694,396,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3241,San Remo Penne Pasta 250g,Staples & Dry Groceries,9.923076923076923,30.0,258,65,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3242,San Remo Elbows Pasta 250g,Staples & Dry Groceries,7.148148148148148,20.0,193,46,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3243,San Remo Penne Spaghetti 250g,General Grocery,17.708333333333332,49.5,425,220,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3244,Nestle Milkmaid 510g,General Grocery,33.958333333333336,63.0,815,402,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3256,Gram Flour 200g,Staples & Dry Groceries,9.833333333333334,18.0,236,50,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,3257,MyJuicee Mango Nectar 180ml,Beverages,27.458333333333332,40.0,659,221,Fast Moving,1.0,0.0,0.0,1.0,1.0
+2026-01-01,month,2950,Bun Talk Tea Bun,Beverages,6.44,15.5,161,66,Fast Moving,0.999651698514457,0.0003483014855428833,0.0,0.999651698514457,0.9998258492572285
+2026-01-01,month,1664,Motha Jelly (Strawberry) 500g,Snacks & Confectionery,6.653846153846154,18.0,173,53,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,1835,Maliban Ginger Biscuit 240g,Cooking Essentials,12.68,48.0,317,73,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,1845,CBL Bourbon Biscuits 100g,Snacks & Confectionery,9.208333333333334,27.0,221,71,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,1982,Edinborough Chocolate Topping270ml,Snacks & Confectionery,7.434782608695652,22.5,171,63,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2138,Raigam Table Salt 400g,Staples & Dry Groceries,7.916666666666667,17.5,190,45,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2139,Biscuit Powder 300g,Snacks & Confectionery,7.346153846153846,17.0,191,75,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2325,Kist Mixed Fruit Nectar 1L,Beverages,6.565217391304348,19.0,151,58,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2545,Link Kesha Hair Oil (Lite)100ml,Personal Care,8.208333333333334,21.0,197,35,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2803,Misumi Momo Soap 90g,Personal Care,16.125,15.5,387,227,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,2871,Bottled Drinking Water 1500ml,Beverages,5.357142857142857,20.5,150,53,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,3136,EdinBorouah Oyster Sauce 1kg,Cooking Essentials,7.925925925925926,31.5,214,50,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,3193,Vim Liquid 500ml,Cleaning & Household,13.592592592592593,19.0,367,218,Fast Moving,0.9995583523303214,0.0004416476696786003,0.0,0.9995583523303214,0.9997791761651608
+2026-01-01,month,1400,Kellogg's Oats 450g,Staples & Dry Groceries,6.37037037037037,14.5,172,46,Fast Moving,0.9977777777777778,0.0022222222222222222,0.0,0.9977777777777778,0.9988888888888888
+2026-01-01,month,1437,Kotmale Chocolate milk 170ml,Dairy & Chilled,5.222222222222222,14.5,141,69,Fast Moving,0.9977777777777778,0.0022222222222222222,0.0,0.9977777777777778,0.9988888888888888
+2026-01-01,month,1621,Revello Milk Chocolate 50g,Dairy & Chilled,5.576923076923077,14.5,145,74,Fast Moving,0.9977777777777778,0.0022222222222222222,0.0,0.9977777777777778,0.9988888888888888
+2026-01-01,month,1968,Edinborough Mustard Cream350g,Cooking Essentials,9.678571428571429,14.5,271,70,Fast Moving,0.9977777777777778,0.0022222222222222222,0.0,0.9977777777777778,0.9988888888888888
+2026-01-01,month,1417,Highland Fresh Milk 450ml,Dairy & Chilled,5.84,13.5,146,74,Fast Moving,0.9965409118645676,0.0034590881354322873,0.0,0.9965409118645676,0.9982704559322838
+2026-01-01,month,1423,Highland Milk Powder (Low Fat) 400g,Dairy & Chilled,4.84,14.0,121,63,Fast Moving,0.9965409118645676,0.0034590881354322873,0.0,0.9965409118645676,0.9982704559322838
+2026-01-01,month,1665,Motha Jelly (Apple) 500g,Snacks & Confectionery,5.25,13.5,147,54,Fast Moving,0.9965409118645676,0.0034590881354322873,0.0,0.9965409118645676,0.9982704559322838
+2026-01-01,month,2193,Freelan Chilli  Powder 50g,Cooking Essentials,8.24,13.5,206,51,Fast Moving,0.9962969635639201,0.0037030364360798483,0.0,0.9962969635639201,0.99814848178196
+2026-01-01,month,2025,San Remo Pasta (Spirals) 500g,Staples & Dry Groceries,9.416666666666666,5.75,226,53,Fast Moving,0.9972522581218962,0.0,0.0027477418781038185,0.9972522581218962,0.9972522581218962
+2026-01-01,month,2179,Wijaya Mustard Powder 50g,Cooking Essentials,9.6,4.5,240,60,Fast Moving,0.9972522581218962,0.0,0.0027477418781038185,0.9972522581218962,0.9972522581218962
+2026-01-01,month,1844,CBL Chocolate Cream 400g,Personal Care,3.5416666666666665,14.0,85,52,Fast Moving,0.9920964674201233,0.0034590881354322873,0.0044444444444444444,0.9920964674201233,0.9938260114878394
+2026-01-01,month,2242,Siddhalepa Pinda Oil 30ml,Health & Medicine,3.6206896551724137,7.333333333333333,105,25,Fast Moving,0.9902473742356035,0.0,0.009752625764396663,0.9902473742356035,0.9902473742356035
+2026-01-01,month,2263,Kist Green Apple Juice 1L,Beverages,5.6923076923076925,15.5,148,55,Fast Moving,0.983314419870717,0.0017702876372599667,0.014915292492023039,0.983314419870717,0.984199563689347
+2026-01-01,month,1576,Dilmah Tea-Bags 25,Beverages,5.375,10.5,129,50,Fast Moving,0.9382504354845206,0.061749564515479374,0.0,0.9382504354845206,0.9691252177422602
+2026-01-01,month,2476,Revello Chocolate (Milk) 170g,Dairy & Chilled,5.44,10.0,136,80,Fast Moving,0.9282835889308646,0.07145449461310152,0.0002619164560343012,0.9282835889308646,0.9640108362374153
+2026-01-01,month,2328,Kist Mango Nectar 1L,Beverages,6.6521739130434785,10.0,153,58,Fast Moving,0.9201915909955511,0.07980840900444859,0.0,0.9201915909955511,0.9600957954977755
+2026-01-01,month,2332,CBL Chocolate Marie 200g,Snacks & Confectionery,8.041666666666666,11.0,193,56,Fast Moving,0.9578623158542943,0.0,0.04213768414570573,0.9578623158542943,0.9578623158542943
+2026-01-01,month,2258,Water  18.9L,Beverages,5.769230769230769,13.0,150,50,Fast Moving,0.9077021066347358,0.09229789336526428,0.0,0.9077021066347358,0.953851053317368
+2026-01-01,month,2083,Lion Ginger Beer 400ml,Cooking Essentials,8.6,9.5,215,50,Fast Moving,0.9502466542299276,0.0,0.049753345770072344,0.9502466542299276,0.9502466542299276
+2026-01-01,month,2796,Fanta Orange 400ml,Beverages,6.541666666666667,12.5,157,49,Fast Moving,0.8924010894545188,0.10759891054548133,0.0,0.8924010894545188,0.9462005447272595
+2026-01-01,month,2107,Kandos Milk Choco 45g,Dairy & Chilled,5.521739130434782,11.5,127,63,Fast Moving,0.8892887409116638,0.11071125908833643,0.0,0.8892887409116638,0.9446443704558319
+2026-01-01,month,1641,MD Faluda Mix 250g,Beverages,6.36,17.5,159,57,Fast Moving,0.8892216461468222,0.11077835385317793,0.0,0.8892216461468222,0.9446108230734112
+2026-01-01,month,1962,Edinborough Chilli Paste 325g,Cooking Essentials,9.26086956521739,10.0,213,55,Fast Moving,0.8867795222594719,0.11322047774052833,0.0,0.8867795222594719,0.943389761129736
+2026-01-01,month,2326,Kist Mango Nectar 200ml,Beverages,6.92,16.5,173,64,Fast Moving,0.8780498381764524,0.12195016182354766,0.0,0.8780498381764524,0.9390249190882263
+2026-01-01,month,2544,Link Kesha Hair Oil (Classic)100ml,Personal Care,8.791666666666666,12.5,211,52,Fast Moving,0.8682390576938879,0.13176094230611188,0.0,0.8682390576938879,0.9341195288469438
+2026-01-01,month,2044,Edinborough Tomato Sauce 230g,Cooking Essentials,7.72,13.5,193,51,Fast Moving,0.8638611639006849,0.13613883609931535,0.0,0.8638611639006849,0.9319305819503426
+2026-01-01,month,2133,A&S Red Rice Flour 900g,Staples & Dry Groceries,13.0,2.8,325,79,Fast Moving,0.9311365410202841,0.001534339778824266,0.06732911920089164,0.9311365410202841,0.9319037109096963
+2026-01-01,month,2268,Rasath jelly Pudin 80ml,Snacks & Confectionery,5.392857142857143,12.5,151,51,Fast Moving,0.8629305663788879,0.1370694336211125,0.0,0.8629305663788879,0.9314652831894441
+2026-01-01,month,2788,Kist Guava Nectar 1L,Beverages,5.153846153846154,6.5,134,48,Fast Moving,0.9280399973861196,0.0,0.07196000261388048,0.9280399973861196,0.9280399973861196
+2026-01-01,month,1020,Clogard (natural salt)70g,Staples & Dry Groceries,6.230769230769231,17.0,162,37,Fast Moving,0.8515424859824544,0.1484575140175459,0.0,0.8515424859824544,0.9257712429912274
+2026-01-01,month,1579,Laojee Ginger Plus 90g,Cooking Essentials,7.2727272727272725,12.0,160,39,Fast Moving,0.8514120986805663,0.14858790131943364,0.0,0.8514120986805663,0.9257060493402831
+2026-01-01,month,3094,Delmege Soya Chicken Flavour 90g,Cooking Essentials,6.571428571428571,6.333333333333333,184,43,Fast Moving,0.9156024823229153,0.0019520270977440746,0.08244549057934061,0.9156024823229153,0.9165784958717873
+2026-01-01,month,2630,Prima Twist Noodles 400g,Staples & Dry Groceries,7.777777777777778,13.0,210,46,Fast Moving,0.8242885496630432,0.1757114503369567,0.0,0.8242885496630432,0.9121442748315216
+2026-01-01,month,2340,CBL Onion Biscuits 30g,Snacks & Confectionery,7.52,15.5,188,69,Fast Moving,0.8236609986110777,0.17604230771585944,0.00029669367306314444,0.8236609986110777,0.9116821524690074
+2026-01-01,month,2738,Sustagen 400g (Chocolate),Snacks & Confectionery,6.0,10.5,162,56,Fast Moving,0.8211082465755193,0.178891753424481,0.0,0.8211082465755193,0.9105541232877598
+2026-01-01,month,1862,CBL Milk Shorties 325g,Dairy & Chilled,5.916666666666667,9.0,142,72,Fast Moving,0.817833316814598,0.18209850338609762,6.817979930451874e-05,0.817833316814598,0.9088825685076468
+2026-01-01,month,2972,Pepsi 250ml,Beverages,5.758620689655173,9.0,167,66,Fast Moving,0.9086846800520313,0.00039327009428944835,0.09092204985367927,0.9086846800520313,0.908881315099176
+2026-01-01,month,1819,CBL Bran Cracker 240g,Snacks & Confectionery,9.590909090909092,10.5,211,71,Fast Moving,0.8103599027104796,0.18944636063279072,0.00019373665672978244,0.8103599027104796,0.905083083026875
+2026-01-01,month,2256,Water (Rainbow) 1000ml,Beverages,5.375,7.5,129,50,Fast Moving,0.8952600950272317,0.0,0.1047399049727688,0.8952600950272317,0.8952600950272317
+2026-01-01,month,2135,Lanka Salt 1kg,Staples & Dry Groceries,9.48,11.0,237,42,Fast Moving,0.8927094848766856,0.0,0.1072905151233145,0.8927094848766856,0.8927094848766856
+2026-01-01,month,2163,Wijaya Chilli Pieces 100g,Cooking Essentials,11.0,16.5,308,68,Fast Moving,0.7781335115861854,0.22158192274011856,0.0002845656736964359,0.7781335115861854,0.8889244729562447
+2026-01-01,month,2175,Wijaya Pepper Powder 100g,Cooking Essentials,12.28,12.5,307,72,Fast Moving,0.7734659846752723,0.22634745960463348,0.0001865557200942089,0.7734659846752723,0.886639714477589
+2026-01-01,month,2853,Olive Oil 250ml,Cooking Essentials,11.115384615384615,11.0,289,71,Fast Moving,0.7676253862616816,0.23235238404207506,2.22296962426063e-05,0.7676253862616816,0.8838015782827192
+2026-01-01,month,2723,Chocolate Coated Cookies 40g,Snacks & Confectionery,9.0,14.5,234,81,Fast Moving,0.7567424133540818,0.24325758664591823,0.0,0.7567424133540818,0.8783712066770408
+2026-01-01,month,2847,Toilet Tissue Flora,General Grocery,5.833333333333333,9.5,140,33,Fast Moving,0.8768491115428655,0.0,0.12315088845713494,0.8768491115428655,0.8768491115428655
+2026-01-01,month,2005,Marina Sun Flower Oil 500ml,Cooking Essentials,12.375,10.5,297,74,Fast Moving,0.8759787956660356,0.001065010310077759,0.12295619402388634,0.8759787956660356,0.8765113008210745
+2026-01-01,month,2471,Tea (loose) 100g,Beverages,7.3478260869565215,7.5,169,68,Fast Moving,0.873216416771177,0.0,0.1267835832288229,0.873216416771177,0.873216416771177
+2026-01-01,month,1117,7Oil Black Seed 50ml,General Grocery,2.6551724137931036,8.0,77,19,Fast Moving,0.8649012892590454,0.0015700374187656689,0.13352867332218857,0.8649012892590454,0.8656863079684283
+2026-01-01,month,1118,Silicone oil 50ml,Cooking Essentials,9.92,18.5,248,54,Fast Moving,0.7320939877330378,0.2665169777016811,0.0013890345652813182,0.7320939877330378,0.8653524765838784
+2026-01-01,month,2958,Little Lion Chocolate Cake,Snacks & Confectionery,5.92,11.0,148,54,Fast Moving,0.7276792260282535,0.27033984321255605,0.0019809307591900633,0.7276792260282535,0.8628491476345316
+2026-01-01,month,2560,Edinborough Corn Flour 500g,Staples & Dry Groceries,10.541666666666666,15.0,253,56,Fast Moving,0.7246810881320512,0.27531891186794905,0.0,0.7246810881320512,0.8623405440660258
+2026-01-01,month,1980,Edinborough Soya Sauce100ml,Cooking Essentials,8.25925925925926,14.0,223,53,Fast Moving,0.7225248693486879,0.2774751306513125,0.0,0.7225248693486879,0.8612624346743442
+2026-01-01,month,1115,Nerralu Hiar oil 100ml,Cooking Essentials,9.28,14.0,232,51,Fast Moving,0.7215584384146766,0.27844156158532335,0.0,0.7215584384146766,0.8607792192073382
+2026-01-01,month,2173,Wijaya Pepper Powder 25g,Cooking Essentials,13.166666666666666,12.5,316,75,Fast Moving,0.720733449552595,0.2786226966362522,0.0006438538111528976,0.720733449552595,0.8600447978707211
+2026-01-01,month,3247,Maggi Coconut Milk Powder 300g,Dairy & Chilled,21.708333333333332,23.0,521,127,Fast Moving,0.7164505900905136,0.2832887616212117,0.00026064828827441973,0.7164505900905136,0.8580949709011194
+2026-01-01,month,2839,Sunflower oil 500ml,Cooking Essentials,11.0,14.5,253,67,Fast Moving,0.71554465255271,0.2837226337816753,0.0007327136656148918,0.71554465255271,0.8574059694435476
+2026-01-01,month,1874,Little Lion Wafers (Chocolate) 225g,Snacks & Confectionery,6.76,12.0,169,66,Fast Moving,0.711931608314519,0.286615932989071,0.0014524586964099308,0.711931608314519,0.8552395748090544
+2026-01-01,month,2693,Fontana Apple Juice 1L,Beverages,6.791666666666667,10.5,163,63,Fast Moving,0.7098461213707951,0.2900914695684965,6.24090607088266e-05,0.7098461213707951,0.8548918561550434
+2026-01-01,month,2609,Wijaya Pepper Powder 250g,Cooking Essentials,8.961538461538462,29.0,233,59,Fast Moving,0.7055223076926449,0.2944776923073553,0.0,0.7055223076926449,0.8527611538463226
+2026-01-01,month,1801,CBL Super Cream Cracker 85g,Personal Care,17.833333333333332,16.0,428,266,Fast Moving,0.7023947532469712,0.29631733294733925,0.0012879138056894265,0.7023947532469712,0.8505534197206408
+2026-01-01,month,2345,Ruby White Samba 1kg,Staples & Dry Groceries,7.0,9.0,168,41,Fast Moving,0.6958599543727687,0.3040348605590612,0.00010518506816998367,0.6958599543727687,0.8478773846522993
+2026-01-01,month,2775,CBL Onion Biscuits 170g,Snacks & Confectionery,9.25,19.0,222,77,Fast Moving,0.6870651005023832,0.31291886010566367,1.6039391953305316e-05,0.6870651005023832,0.843524530555215
+2026-01-01,month,1981,Edinborough Soya Sauce650ml,Cooking Essentials,7.966666666666667,25.5,239,49,Fast Moving,0.8381303018204357,0.0009487080168634253,0.16092099016270112,0.8381303018204357,0.8386046558288675
+2026-01-01,month,1589,Harischandra Coffee 100g,Beverages,6.52,11.5,163,65,Fast Moving,0.6690886269708157,0.33091137302918416,0.0,0.6690886269708157,0.8345443134854078
+2026-01-01,month,2174,Wijaya Pepper Powder 50g,Cooking Essentials,11.636363636363637,13.0,256,62,Fast Moving,0.667213198737746,0.33278680126225413,0.0,0.667213198737746,0.833606599368873
+2026-01-01,month,1863,CBL Chocolate Puff 100g,Snacks & Confectionery,6.888888888888889,11.0,186,67,Fast Moving,0.6618864346193303,0.3381135653806701,0.0,0.6618864346193303,0.8309432173096654
+2026-01-01,month,2785,Kist Aloevera Drink  200ml,Beverages,6.166666666666667,15.0,148,54,Fast Moving,0.6610291893325502,0.33897081066744994,0.0,0.6610291893325502,0.8305145946662751
+2026-01-01,month,1991,Edinborough Coconut Vinegar350ml,Cooking Essentials,8.04,11.5,201,48,Fast Moving,0.6609238004593736,0.33907619954062695,0.0,0.6609238004593736,0.8304619002296871
+2026-01-01,month,2072,Sprite 1050ml,Beverages,8.222222222222221,16.0,222,74,Fast Moving,0.6565143586322587,0.3429674145441474,0.0005182268235937564,0.6565143586322587,0.8279980659043324
+2026-01-01,month,2841,Fortune Coconut Oil 350ml,Cooking Essentials,21.708333333333332,12.0,521,114,Fast Moving,0.6542255063012486,0.34572164530341293,5.284839533844365e-05,0.6542255063012486,0.8270863289529551
+2026-01-01,month,2255,Water (Rainbow) 500ml,Beverages,5.25,7.5,126,37,Fast Moving,0.8259302869554529,0.0,0.1740697130445469,0.8259302869554529,0.8259302869554529
+2026-01-01,month,2024,San Remo Pasta (Small Shells) 500g,Staples & Dry Groceries,9.291666666666666,12.0,223,53,Fast Moving,0.6388899320690595,0.3611100679309404,0.0,0.6388899320690595,0.8194449660345298
+2026-01-01,month,2474,Revello Chocolate (Cashew) 50g,Snacks & Confectionery,6.541666666666667,14.5,157,52,Fast Moving,0.6181301914963078,0.381869808503692,0.0,0.6181301914963078,0.8090650957481538
+2026-01-01,month,2840,Sunflower Oil 1L,Cooking Essentials,12.826086956521738,19.0,295,61,Fast Moving,0.6164373444679717,0.38354494154310265,1.7713988925828144e-05,0.6164373444679717,0.8082098152395231
+2026-01-01,month,2192,Freelan Curry Powder 50g,Cooking Essentials,9.793103448275861,17.0,284,63,Fast Moving,0.612375702369117,0.387624297630883,0.0,0.612375702369117,0.8061878511845585
+2026-01-01,month,2011,Marina Cooking Oil 500ml,Cooking Essentials,9.615384615384615,14.5,250,56,Fast Moving,0.6105191586566042,0.38948084134339567,0.0,0.6105191586566042,0.805259579328302
+2026-01-01,month,1989,KIST Chilli Sauce375g,Cooking Essentials,9.692307692307692,13.0,252,55,Fast Moving,0.6077094812893334,0.39187712851686984,0.00041339019379675547,0.6077094812893334,0.8036480455477684
+2026-01-01,month,1088,C.Baby Soap (Pichcha) 125g,Baby & Kids,17.083333333333332,14.5,410,238,Fast Moving,0.6006917505012279,0.3990792557571923,0.00022899374158012612,0.6006917505012279,0.800231378379824
+2026-01-01,month,2181,Wijaya Mustard Seeds 100g,Cooking Essentials,11.708333333333334,13.5,281,61,Fast Moving,0.5864595206874039,0.41263932859234187,0.0009011507202542784,0.5864595206874039,0.7927791849835748
+2026-01-01,month,2540,Rancrisp Potato Chips (Barbecue)60g,Snacks & Confectionery,25.083333333333332,15.0,602,212,Fast Moving,0.5857974535594286,0.41329789084114965,0.0009046555994217225,0.5857974535594286,0.7924463989800035
+2026-01-01,month,2588,CBL Snak Cracker 170g,Snacks & Confectionery,9.478260869565217,14.5,218,77,Fast Moving,0.5801828713898574,0.41981712861014264,0.0,0.5801828713898574,0.7900914356949287
+2026-01-01,month,3093,Delmege Soya Cuttlefish Flavour 90g,Cooking Essentials,5.793103448275862,12.0,168,41,Fast Moving,0.5705785214677638,0.4294214785322362,0.0,0.5705785214677638,0.7852892607338819
+2026-01-01,month,2406,A&S White Rice Flour 900g,Staples & Dry Groceries,10.555555555555555,11.0,285,69,Fast Moving,0.5677135986461589,0.43001105630005354,0.0022753450537876634,0.5677135986461589,0.7827191267961857
+2026-01-01,month,2370,Garlic 1kg,Cooking Essentials,7.533333333333333,9.5,226,51,Fast Moving,0.7783319863974583,0.0014582804043672074,0.22020973319817447,0.7783319863974583,0.7790611265996419
+2026-01-01,month,1857,CBL Chocolate Chip Cookies 100g,Snacks & Confectionery,7.68,14.0,192,81,Fast Moving,0.556934419442349,0.4419934144521513,0.0010721661054994389,0.556934419442349,0.7779311266684247
+2026-01-01,month,1497,Tiara Layer Cake (Vanilla)310g,Snacks & Confectionery,8.91304347826087,15.5,205,62,Fast Moving,0.5545672491914301,0.44543275080857003,0.0,0.5545672491914301,0.7772836245957151
+2026-01-01,month,1997,Choco Peanut Butter325g,General Grocery,15.833333333333334,11.0,380,189,Fast Moving,0.5493523035514414,0.4501848698500067,0.00046282659855199844,0.5493523035514414,0.7744447384764448
+2026-01-01,month,2617,Diva Fresh (Sepalika & Lime) 1kg,Cleaning & Household,14.041666666666666,19.0,337,207,Fast Moving,0.5466825879865033,0.4532383196431338,7.909237036264921e-05,0.5466825879865033,0.7733017478080702
+2026-01-01,month,1297,Vim Limes 400g,Cleaning & Household,14.541666666666666,15.0,349,220,Fast Moving,0.5449859963659013,0.45495262525266195,6.137838143682107e-05,0.5449859963659013,0.7724623089922322
+2026-01-01,month,1969,Edinborough Mustard Cream695g,Cooking Essentials,12.153846153846153,13.0,316,76,Fast Moving,0.5448999128427869,0.45455862474813186,0.00054146240908125,0.5448999128427869,0.7721792252168529
+2026-01-01,month,1565,Watawala Tea 200g,Beverages,5.333333333333333,9.0,160,59,Fast Moving,0.5393026265576991,0.46062919364299637,6.817979930451874e-05,0.5393026265576991,0.7696172233791974
+2026-01-01,month,1792,Asiri Rice Flour Savoury (Garlic)25g,Staples & Dry Groceries,17.842105263157894,12.5,339,72,Fast Moving,0.5384039489679256,0.46159605103207435,0.0,0.5384039489679256,0.7692019744839629
+2026-01-01,month,2664,Dhal 1kg,Staples & Dry Groceries,6.185185185185185,11.5,167,43,Fast Moving,0.5308823632644983,0.4690886553224358,2.8981413065798582e-05,0.5308823632644983,0.7654266909257162
+2026-01-01,month,1459,Ratthi Milk Powder 400g,Dairy & Chilled,5.555555555555555,14.0,150,70,Fast Moving,0.5179678675956964,0.4819272957745066,0.00010483662979700094,0.5179678675956964,0.7589315154829497
+2026-01-01,month,2870,Bottled Drinking Water 1000ml,Beverages,8.173913043478262,12.5,188,62,Fast Moving,0.5123922576656721,0.48760774233432774,0.0,0.5123922576656721,0.7561961288328359
+2026-01-01,month,1577,Laojee Tea 50g,Beverages,7.708333333333333,15.5,185,62,Fast Moving,0.7555218090603812,0.001338141695314624,0.24314004924430438,0.7555218090603812,0.7561908799080386
+2026-01-01,month,2425,Maliban Chocolate Cream 200g,Personal Care,16.708333333333332,16.0,401,243,Fast Moving,0.51181844494794,0.48817703934474316,4.5157073167781544e-06,0.51181844494794,0.7559069646203116
+2026-01-01,month,1648,Motha Gelatine 30g,General Grocery,16.708333333333332,22.0,401,204,Medium Moving,0.49626784784537853,0.5037321521546214,0.0,0.5037321521546214,0.7481339239226892
+2026-01-01,month,2533,CBL Wafers 85g (Vanilla),General Grocery,14.615384615384615,9.5,380,183,Medium Moving,0.49224951833819547,0.5072283161159331,0.0005221655458714449,0.5072283161159331,0.745863676396162
+2026-01-01,month,2278,Araliya Premium Keeri Samba Rice 1kg,Staples & Dry Groceries,11.464285714285714,18.5,321,76,Medium Moving,0.49140511153423216,0.5073889133642582,0.0012059751015096227,0.5073889133642582,0.7450995682163613
+2026-01-01,month,1660,Motha Jelly (Strawberry) 100g,Snacks & Confectionery,6.24,10.0,156,60,Medium Moving,0.4905854717992777,0.5085969500504538,0.0008175781502685378,0.5085969500504538,0.7448839468245045
+2026-01-01,month,3051,Pears Pure & Gentle BabySoap 70g,General Grocery,17.375,12.5,417,229,Medium Moving,0.47377341170637854,0.5259346868546386,0.000291901438982692,0.5259346868546386,0.7367407551336979
+2026-01-01,month,2195,Freelan Chilli  Pieces 50g,Cooking Essentials,13.916666666666666,10.0,334,83,Medium Moving,0.4679918758092354,0.531169492819981,0.000838631370783401,0.531169492819981,0.7335766222192259
+2026-01-01,month,2103,BunTalk Better Biscuit 10pcs,Snacks & Confectionery,7.148148148148148,11.0,193,71,Medium Moving,0.46677520922828863,0.5332247907717113,0.0,0.5332247907717113,0.7333876046141443
+2026-01-01,month,2668,Fortune Vegetable Oil 1L,Cooking Essentials,12.64,29.0,316,61,Medium Moving,0.4647203247787361,0.5349648028005215,0.00031487242074242143,0.5349648028005215,0.7322027261789968
+2026-01-01,month,1481,Milo milk powder 200g,Dairy & Chilled,5.7727272727272725,12.0,127,68,Medium Moving,0.46327338027465437,0.5367011714738296,2.5448251515908873e-05,0.5367011714738296,0.7316239660115691
+2026-01-01,month,2180,Wijaya Mustard Seeds 50g,Cooking Essentials,11.416666666666666,13.5,274,60,Medium Moving,0.46295525111133856,0.5370109955077822,3.3753380879133456e-05,0.5370109955077822,0.7314607488652296
+2026-01-01,month,1992,Edinborough Coconut Vinegar750ml,Cooking Essentials,5.896551724137931,17.5,171,45,Medium Moving,0.4523906403845252,0.547195969421678,0.00041339019379675547,0.547195969421678,0.7259886250953642
+2026-01-01,month,1021,Clogard (natural salt) 120g,Staples & Dry Groceries,9.64,19.5,241,55,Medium Moving,0.4498686466002121,0.5501153140078346,1.6039391953305316e-05,0.5501153140078346,0.7249263036041294
+2026-01-01,month,2074,Fanta 1050ml,Beverages,6.956521739130435,11.5,160,53,Medium Moving,0.4217172730091771,0.5782827269908233,0.0,0.5782827269908233,0.7108586365045888
+2026-01-01,month,2900,Sprite 300ml(glass bottle),Beverages,5.037037037037037,12.5,136,48,Medium Moving,0.42214927100249894,0.5770037452662731,0.0008469837312279102,0.5770037452662731,0.7106511436356355
+2026-01-01,month,1987,KIST Tomato Sauce 4L,Cooking Essentials,7.458333333333333,13.5,179,43,Medium Moving,0.39845739099824135,0.6015426090017588,0.0,0.6015426090017588,0.6992286954991207
+2026-01-01,month,2404,Maggi Daiya (Chilli Chicken)76g,Cooking Essentials,8.565217391304348,17.0,197,53,Medium Moving,0.38487232343848826,0.6151276765615117,0.0,0.6151276765615117,0.692436161719244
+2026-01-01,month,1172,Lifebuoy Bodywash (Green Tea) 100ml,Beverages,7.666666666666667,10.0,184,67,Medium Moving,0.3830555244777382,0.616585292759639,0.0003591827626230167,0.616585292759639,0.6913481708575577
+2026-01-01,month,1706,Clogard (Natural-Salt)40g,Staples & Dry Groceries,8.0,13.5,216,54,Medium Moving,0.38023040469501024,0.6197535559130364,1.6039391953305316e-05,0.6197535559130364,0.6901071826515284
+2026-01-01,month,1146,Sunsilk Shampoo (Coconut)80ml,Personal Care,7.375,15.0,177,44,Medium Moving,0.37282524175387216,0.6270699216163308,0.00010483662979700094,0.6270699216163308,0.6863602025620376
+2026-01-01,month,2561,Edinborough Fish Sauce 190ml,Cooking Essentials,7.769230769230769,14.0,202,52,Medium Moving,0.3705745512943549,0.6294254487056451,0.0,0.6294254487056451,0.6852872756471775
+2026-01-01,month,1145,Sunsilk Shampoo (Thick)80ml,Personal Care,16.208333333333332,17.0,389,223,Medium Moving,0.34918172420596466,0.649587224662466,0.0012310511315693836,0.649587224662466,0.6739753365371977
+2026-01-01,month,1329,Harpic Power Plus 200ml,Cleaning & Household,15.416666666666666,13.0,370,226,Medium Moving,0.3391500080847628,0.660849991915237,0.0,0.660849991915237,0.6695750040423813
+2026-01-01,month,2959,Lion Ginger Beer 250ml,Cooking Essentials,8.083333333333334,14.0,194,53,Medium Moving,0.3219280809048784,0.6780719190951214,0.0,0.6780719190951214,0.6609640404524391
+2026-01-01,month,1619,Revello Fantasy Milk 50g,Dairy & Chilled,5.961538461538462,7.5,155,73,Fast Moving,0.6588142993443372,0.0005714655870077328,0.3406142350686551,0.6588142993443372,0.6591000321378411
+2026-01-01,month,2341,CBL Cheese Buttons Biscuits 30g,Dairy & Chilled,5.178571428571429,11.0,145,72,Medium Moving,0.31059799865113685,0.6878582210320692,0.001543780316793744,0.6878582210320692,0.6545271091671714
+2026-01-01,month,2384,Mars Bars 33g,General Grocery,1.7307692307692308,8.5,45,21,Medium Moving,0.30519885818093934,0.6869122909793166,0.007888850839743916,0.6869122909793166,0.6486550036705976
+2026-01-01,month,1662,Motha Jelly (Greengage) 100g,Snacks & Confectionery,7.592592592592593,11.5,205,69,Medium Moving,0.29303100765996853,0.7068563135149146,0.00011267882511672689,0.7068563135149146,0.6464591644174258
+2026-01-01,month,2238,Siddhalepa Batu Oil 30ml,Health & Medicine,2.8214285714285716,12.5,79,15,Medium Moving,0.2953099873512661,0.6987824689728352,0.005907543675898596,0.6987824689728352,0.6447012218376837
+2026-01-01,month,2927,Revello Dark Chocolate 50g,Snacks & Confectionery,4.32258064516129,8.5,134,53,Medium Moving,0.2954661362811697,0.6971888632882114,0.007345000430618979,0.6971888632882114,0.6440605679252753
+2026-01-01,month,2289,Atlas Double Ruled Book 80page,Stationery,1.3333333333333333,9.5,40,17,Medium Moving,0.2959069889534893,0.6955360167802074,0.008556994266303224,0.6955360167802074,0.643674997343593
+2026-01-01,month,2300,Atlas CR Book Single Ruled (120p),Stationery,1.5151515151515151,8.5,50,26,Medium Moving,0.2799031591343272,0.7178016729305581,0.0022951679351143678,0.7178016729305581,0.6388039955996062
+2026-01-01,month,1644,Motha Baking Powder 50g,General Grocery,29.208333333333332,13.0,701,347,Fast Moving,0.6369852258650646,0.0022222222222222222,0.3607925519127131,0.6369852258650646,0.6380963369761756
+2026-01-01,month,2301,Atlas CR Book Single Ruled (160p),Stationery,2.0,11.5,58,23,Medium Moving,0.2636314899761683,0.725575179190529,0.01079333083330246,0.725575179190529,0.6264190795714328
+2026-01-01,month,1571,Zesta Tea Bags25(BOPF),Beverages,6.392857142857143,17.5,179,66,Medium Moving,0.24199123693068386,0.7580087630693162,0.0,0.7580087630693162,0.620995618465342
+2026-01-01,month,2197,Freelan Dhall Curry Mix 50g,Cooking Essentials,10.652173913043478,17.0,245,67,Medium Moving,0.23183140232665092,0.7681685976733489,0.0,0.7681685976733489,0.6159157011633254
+2026-01-01,month,1841,Maliban Chocolate Puff 200g,Snacks & Confectionery,7.375,9.0,177,63,Medium Moving,0.23163078050118474,0.7670356294332152,0.0013335900655998168,0.7670356294332152,0.6151485952177924
+2026-01-01,month,1640,MD Faluda Mix 125g,Beverages,4.703703703703703,14.5,127,45,Medium Moving,0.22609156465290042,0.7739084353470993,0.0,0.7739084353470993,0.6130457823264501
+2026-01-01,month,2071,Sprite 400ml,Beverages,6.4,13.5,160,55,Medium Moving,0.22674330918213204,0.772500355831267,0.0007563349866006895,0.772500355831267,0.6129934870977656
+2026-01-01,month,1986,KIST Tomato Sauce 2L,Cooking Essentials,3.911764705882353,13.0,133,37,Medium Moving,0.219832461305699,0.7705429514657995,0.009624587228501433,0.7705429514657995,0.6051039370385988
+2026-01-01,month,2066,CocaCola 250ml,General Grocery,2.103448275862069,10.0,61,30,Medium Moving,0.20772247282686876,0.7861002521950616,0.0061772749780698135,0.7861002521950616,0.6007725989243996
+2026-01-01,month,2442,Verda Pasta (Spirals) 400g,Staples & Dry Groceries,9.75,20.5,234,50,Medium Moving,0.20125829320812047,0.7987417067918792,0.0,0.7987417067918792,0.6006291466040601
+2026-01-01,month,2914,Sameera Biscuit powder,Snacks & Confectionery,8.583333333333334,17.0,206,86,Medium Moving,0.19817105017779277,0.8016682890407982,0.00016066078140884068,0.8016682890407982,0.5990051946981919
+2026-01-01,month,1802,CBL Super Cream Cracker 125g,Personal Care,3.857142857142857,9.0,108,67,Medium Moving,0.2011090502781644,0.7938457094971246,0.005045240224710947,0.7938457094971246,0.5980319050267267
+2026-01-01,month,3154,Sunlight Royal Lavender 200g,Cleaning & Household,2.2,10.0,66,38,Medium Moving,0.19886284219649206,0.7946461741921238,0.006490983611383867,0.7946461741921238,0.596185929292554
+2026-01-01,month,1386,Siddhalepa Neelyadi Oil 100ml,Health & Medicine,3.1724137931034484,12.5,92,17,Medium Moving,0.1879202107084044,0.8026555238149325,0.009424265476663054,0.8026555238149325,0.5892479726158707
+2026-01-01,month,1461,Maliban Milk  Powder 150g,Dairy & Chilled,4.84,10.0,121,66,Medium Moving,0.17259075027352333,0.8250293668847615,0.002379882841714873,0.8250293668847615,0.5851054337159041
+2026-01-01,month,2191,Freelan Meat Curry Powder 20g,Cooking Essentials,9.038461538461538,17.5,235,60,Medium Moving,0.1688115282448558,0.8307208729494379,0.0004675988057064569,0.8307208729494379,0.5841719647195747
+2026-01-01,month,2721,Chocolate Fingers 45g,Snacks & Confectionery,5.846153846153846,10.5,152,52,Medium Moving,0.16437423791648906,0.8356257620835109,0.0,0.8356257620835109,0.5821871189582445
+2026-01-01,month,2052,Motha Jelly (apple)100g,Snacks & Confectionery,7.8,11.0,195,64,Medium Moving,0.15858013262422643,0.8413767655782193,4.3101797554194426e-05,0.8413767655782193,0.5792685154133361
+2026-01-01,month,3086,Diva Fresh (Lavender & Lime) 1kg,Cleaning & Household,4.0,10.0,92,58,Medium Moving,0.15529729928751954,0.8416590454875339,0.0030436552249467337,0.8416590454875339,0.5761268220312865
+2026-01-01,month,2398,Atlas Square Ruled 1'',Stationery,2.64,9.0,66,35,Medium Moving,0.15150340685255537,0.8401556325311603,0.00834096061628456,0.8401556325311603,0.5715812231181355
+2026-01-01,month,2347,R.L Drinking Yoghurt 180ml (Classic),Dairy & Chilled,4.75,12.0,114,57,Medium Moving,0.14330437726030998,0.8561343282888022,0.0005612944508881999,0.8561343282888022,0.5713715414047111
+2026-01-01,month,1432,Daily Faluda milk 180ml,Dairy & Chilled,4.708333333333333,11.0,113,64,Medium Moving,0.14278969361565425,0.8570752066590499,0.00013509972529613645,0.8570752066590499,0.5713272969451793
+2026-01-01,month,2979,Pepsi 1.5L,Beverages,5.086956521739131,13.5,117,44,Medium Moving,0.12925585737014317,0.8698971588986288,0.0008469837312279102,0.8698971588986288,0.5642044368194576
+2026-01-01,month,2644,Britol Car Wash Liquid 500ml,Cleaning & Household,2.466666666666667,9.5,74,43,Medium Moving,0.13431335401386948,0.8591990053751682,0.006487640610962175,0.8591990053751682,0.5639128567014536
+2026-01-01,month,1110,Kumarika Hair Oil 50ml,Personal Care,6.318181818181818,18.0,139,36,Medium Moving,0.13004444266218518,0.8674626741987543,0.0024928831390603878,0.8674626741987543,0.5637757797615623
+2026-01-01,month,2240,Siddhalepa Mustard Oil 30ml,Health & Medicine,5.133333333333334,11.5,154,33,Medium Moving,0.12912852758771967,0.8627203486285844,0.008151123783696248,0.8627203486285844,0.5604887019020118
+2026-01-01,month,1447,R.L Drinking Yoghurt (vanilla),Dairy & Chilled,5.333333333333333,10.5,128,67,Medium Moving,0.11413684532786762,0.8857988617529107,6.42929192217982e-05,0.8857988617529107,0.5570362762043229
+2026-01-01,month,2922,StixRolled Wafer(Chocolate 100g),Snacks & Confectionery,7.0,9.0,203,68,Medium Moving,0.11364217967551746,0.8841020757639623,0.0022557445605203056,0.8841020757639623,0.5556932175574986
+2026-01-01,month,2766,Lipton Ceylonta 100 Tea bags,Beverages,7.615384615384615,14.5,198,72,Medium Moving,0.11000815596521837,0.8899918440347816,0.0,0.8899918440347816,0.5550040779826092
+2026-01-01,month,2689,CBL Wafer Stix 20g,Snacks & Confectionery,5.814814814814815,10.0,157,60,Medium Moving,0.10948746455800852,0.8874140403724476,0.0030984950695439363,0.8874140403724476,0.5531944847442324
+2026-01-01,month,3170,Surf Excel 500g,General Grocery,18.130434782608695,14.5,417,226,Medium Moving,0.09911311821176687,0.9008868817882331,0.0,0.9008868817882331,0.5495565591058834
+2026-01-01,month,2443,Heins Tuna Flakes in s/f oil 185g,Cooking Essentials,9.818181818181818,14.5,216,50,Medium Moving,0.09618577848653528,0.9034008313196678,0.00041339019379675547,0.9034008313196678,0.5478861941463692
+2026-01-01,month,1572,Zesta Tea Bags50(BOPF),Beverages,5.035714285714286,10.5,141,59,Medium Moving,0.0898165357457123,0.9081445838673888,0.002038880386898615,0.9081445838673888,0.5438888276794067
+2026-01-01,month,2317,Sweet Love Natural Spray 23ml,Snacks & Confectionery,4.612903225806452,10.0,143,52,Fast Moving,0.5411918358601585,0.00039327009428944835,0.45841489404555213,0.5411918358601585,0.5413884709073032
+2026-01-01,month,2360,Sweet Pop 50g,Snacks & Confectionery,6.041666666666667,11.5,145,48,Medium Moving,0.08271310102188653,0.9172868989781134,0.0,0.9172868989781134,0.5413565505109432

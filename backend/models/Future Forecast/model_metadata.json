@@ -1,0 +1,16 @@
+{
+  "model_version": "bundlemind_hybrid_daily_v4",
+  "source_csv_rows": 200000,
+  "daily_observations": 731,
+  "train_ratio": 0.8,
+  "train_rows": 584,
+  "test_rows": 147,
+  "transaction_selected_model": "ensemble",
+  "quantity_selected_model": "ensemble",
+  "supported_views": [
+    "daily",
+    "weekly",
+    "monthly"
+  ],
+  "latest_training_date": "2025-12-31"
+}
