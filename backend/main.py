@@ -6,8 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import SessionLocal, initialize_database
 from routers import auth, dashboard, sales, products, bundles, ml_models, access_requests, users, forecasts
 from services.auth_service import seed_admin_user
-from services.model_service import model_service
-from services.forecast_service import forecast_service
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("prophet.plot").setLevel(logging.CRITICAL)
@@ -21,11 +19,6 @@ async def lifespan(app: FastAPI):
         seed_admin_user(db)
     finally:
         db.close()
-    model_service.load_models()
-    try:
-        forecast_service.load_models()
-    except Exception as exc:
-        logging.getLogger(__name__).error(f"Error loading forecast models on startup: {exc}")
     yield
 
 
