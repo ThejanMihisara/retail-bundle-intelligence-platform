@@ -27,8 +27,12 @@ app = FastAPI(title="BundleMind API", version="1.0.0", lifespan=lifespan)
 
 _cors_env = os.getenv("CORS_ORIGINS", "")
 allowed_origins = [o.strip() for o in _cors_env.split(",") if o.strip()]
-dev_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
-for origin in dev_origins:
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://retail-bundle-intelligence-platform.vercel.app",
+]
+for origin in default_origins:
     if origin not in allowed_origins:
         allowed_origins.append(origin)
 
